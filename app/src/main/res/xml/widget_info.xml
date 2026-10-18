@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  `initialLayout` é obrigatório em toda versão do Android, mesmo sendo ignorado a
+  partir da API 17. Sem ele o launcher não consegue desenhar o widget na
+  primeira adição.
+
+  `previewLayout` dá a imagem que aparece na galeria de widgets; sem ela o
+  usuário vê um retângulo vazio e não sabe o que está instalando.
+
+  `widgetCategory` como `home_screen` esconde o widget da tela de bloqueio: afinar
+  com a tela apagada exigiria o microfone ligado, e o Android não permite.
+-->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="180dp"
+    android:minHeight="180dp"
+    android:targetCellWidth="3"
+    android:targetCellHeight="3"
+    android:description="@string/widget_description"
+    android:initialLayout="@layout/widget_tuning_reference"
+    android:previewLayout="@layout/widget_tuning_reference"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

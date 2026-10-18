@@ -7,11 +7,7 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.ui.Modifier
-import com.afinu.app.ui.navigation.MainScreen
+import com.afinu.app.ui.navigation.AppRoot
 import com.afinu.app.ui.theme.AfinadorTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -19,9 +15,9 @@ import dagger.hilt.android.AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     /**
-     * A permissão é pedida ao abrir, não antes de explicar. Um diálogo de
+     * A permissão é pedida depois da explicação, nunca antes. Um diálogo de
      * sistema sem contexto é a forma mais rápida de o usuário negar acesso
-     * para sempre.
+     * para sempre, e não há como perguntar de novo.
      */
     private val requestPermission = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -33,14 +29,9 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             AfinadorTheme {
-                Surface(
-                    modifier = Modifier.fillMaxSize(),
-                    color = MaterialTheme.colorScheme.background,
-                ) {
-                    MainScreen(onRequestPermission = {
-                        requestPermission.launch(Manifest.permission.RECORD_AUDIO)
-                    })
-                }
+                AppRoot(onRequestPermission = {
+                    requestPermission.launch(Manifest.permission.RECORD_AUDIO)
+                })
             }
         }
     }

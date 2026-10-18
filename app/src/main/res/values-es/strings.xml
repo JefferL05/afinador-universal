@@ -137,4 +137,21 @@
     <string name="barre_hint">Usa cejilla</string>
     <string name="recorder_hint">Graba una idea y vuelve a ella después.</string>
     <string name="tab_recorder">Grabar</string>
+    <string name="onboarding_title">El afinador que funciona sin internet</string>
+    <string name="onboarding_body">Abrimos el micrófono medio segundo, leemos la nota y te decimos cuánto te falta. Sin registro, sin anuncios, sin enviar nada a ningún sitio.</string>
+    <string name="onboarding_mic_title">Por qué el micrófono</string>
+    <string name="onboarding_mic_body">La app necesita oír la cuerda para saber su altura. Todo el análisis ocurre en este dispositivo, en tiempo real. No se graba nada en disco.</string>
+    <string name="onboarding_next">Continuar</string>
+    <string name="onboarding_start">Empezar a afinar</string>
+    <string name="onboarding_skip">Omitir</string>
+    <string name="feature_tuner">Afinación de 34 instrumentos</string>
+    <string name="feature_metronome">Un metrónomo que no se sale del tiempo</string>
+    <string name="feature_offline">Funciona 100% offline, sin permiso de internet</string>
+    <string name="pause">Pausar</string>
+    <string name="start">Iniciar</string>
+    <string name="widget_label">Afinador Universal</string>
+    <string name="widget_description">Toca una cuerda para oír la nota de referencia de tu afinación</string>
+    <string name="widget_capo">cejilla %1$d</string>
+    <string name="widget_a4">La4 %1$d Hz</string>
+    <string name="widget_string_row">%1$d  %2$s</string>
 </resources>

@@ -261,6 +261,7 @@ class TunerViewModel @Inject constructor(
                 smoothedFrequencyHz = smoothed,
                 detectedStringIndex = stringIndex,
                 noteJustChanged = changed,
+                justGotInTune = enteredTune,
                 guidedStringIndex = advanced,
                 inTuneCount = if (enteredTune) it.inTuneCount + 1 else it.inTuneCount,
             )

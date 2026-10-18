@@ -3,8 +3,9 @@
 Afinador de instrumentos musicais para Android. **Violão, guitarra, baixo e mais
 33 instrumentos** — com foco em afinar rápido, em qualquer lugar, sem internet.
 
-> **Estado atual:** Fases 1 a 5 concluídas. Restam onboarding/acessibilidade
-> (6) e CI/release/assinatura (7) — ver [Fases](#fases-restantes).
+> **Estado atual:** Fases 1 a 6 concluídas. Falta apenas a Fase 7
+> (CI/release/assinatura, cujos arquivos já existem mas nunca foram testados
+> em um ambiente de build).
 
 ---
 
@@ -204,6 +205,45 @@ midi)` converte para intervalo antes de comparar.
 
 ---
 
+## Acessibilidade
+
+Um afinador é, por natureza, **visual e sonoro**. Para quem usa TalkBack, o bip
+de confirmação existe mas dura 110 ms e passa despercebido — sem um sinal
+explícito, não há nenhuma forma de saber que a nota ficou afinada.
+
+O que foi feito:
+
+| Onde | O quê |
+|---|---|
+| Afinador | Anúncio "… afinado" via `LiveRegion` **só na entrada** da zona, em modo `Polite` (não interrompe o que o leitor estiver falando) |
+| Medidor | `stateDescription` em vez de `contentDescription`: o TalkBack anuncia a variação sozinho, sem o usuário navegar até o elemento |
+| Sliders (A4, ajuste fino, BPM) | `labelAndState` — sem isso o TalkBack anuncia "controle ajustável" e nada mais, e o usuário mexe no A4 às cegas |
+| Botão play/pause | 88 dp, bem acima do mínimo de 48 dp, porque é apertado no meio de uma frase com uma mão ocupada |
+| Indicador de páginas | Um nó só ("página 2 de 3"). Três bolinhas separadas fariam o leitor anunciar "círculo, círculo, círculo" |
+| Ícones decorativos | `contentDescription = null` quando o texto ao lado já descreve tudo, para o leitor não ler duas vezes |
+
+---
+
+## Widget
+
+O widget **não** mostra a nota que está tocando. Isso exigiria manter o
+microfone ligado em segundo plano, o que o Android restringe a apps de gravação
+de áudio — o app seria rejeitado na Play Store e, quando permitido, o dreno de
+bateria o tornaria inútil.
+
+O que ele faz é o que ajuda de verdade fora do app: mostra a afinação atual e
+**toca a nota de referência** ao toque. Afinar "de ouvido" contra a referência
+do dedo, longe do instrumento, é o caso em que o celular está no bolso e a mão
+ocupada.
+
+Detalhe que evita um bug real: a frequência viaja **pronta** nos `extras` do
+`PendingIntent`, calculada com o A4 do usuário. Se o receiver lesse as
+preferências de novo, o widget e o som poderiam divergir — a linha marcaria "Dó"
+e tocaria Sol. `RemoteViews` também não aceita tema nem `?attr`, então todas as
+cores do layout são literais.
+
+---
+
 ## Arquitetura
 
 ```
@@ -223,6 +263,9 @@ feature/
   metronome/ MetronomeEngine, MetronomeTiming, MetronomeScreen
   chords/    ChordsViewModel, ChordsScreen (diagrama e braço)
   recorder/  IdeaRecorder, RecorderScreen
+  onboarding/OnboardingScreen, OnboardingViewModel
+widget/         TunerWidgetProvider, ReferenceToneReceiver
+ui/accessibility/ Helpers de semantica e alvos de toque
 core/util/   MusicTheory, Capo, Fretboard, ChordFinder, ChordNames
 ui/
   navigation/MainScreen (bottom bar), Destination
@@ -255,7 +298,7 @@ Regras que o código segue:
 | 3 | Tela de afinador, medidor, feedback | ✅ |
 | 4 | Navegação, ajustes, favoritos, capo, cartão de notas | ✅ |
 | 5 | Metrônomo, acordes, braço, gravador | ✅ |
-| 6 | Onboarding, acessibilidade, widgets | ⬜ |
+| 6 | Onboarding, acessibilidade, widgets | ✅ |
 | 7 | CI/release, assinatura, Play Store | ⬜ |
 
 ---

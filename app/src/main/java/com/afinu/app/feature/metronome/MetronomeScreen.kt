@@ -28,6 +28,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.afinu.app.R
+import com.afinu.app.ui.accessibility.labelAndState
 import com.afinu.app.ui.components.ChipRow
 
 /**
@@ -96,12 +98,10 @@ fun MetronomeScreen(
             onClick = viewModel::toggle,
             modifier = Modifier
                 .size(88.dp)
-                .semantics {
-                    contentDescription = if (state.isRunning) {
-                        "Parar o metrônomo"
-                    } else {
-                        "Iniciar o metrônomo"
-                    }
+                .clearAndSetSemantics {
+                    contentDescription = stringResource(
+                        if (state.isRunning) R.string.pause else R.string.start
+                    )
                 },
         ) {
             Icon(
@@ -119,9 +119,10 @@ fun MetronomeScreen(
             valueRange = MetronomeConfig.MIN_BPM..MetronomeConfig.MAX_BPM,
             // 270 passos de 1 BPM entre 30 e 300.
             steps = 268,
-            modifier = Modifier.semantics {
-                contentDescription = "Andamento: ${state.config.bpm.toInt()} BPM"
-            },
+            modifier = Modifier.labelAndState(
+                label = stringResource(R.string.bpm_label),
+                value = "${state.config.bpm.toInt()} BPM",
+            ),
         )
 
         Spacer(Modifier.height(8.dp))

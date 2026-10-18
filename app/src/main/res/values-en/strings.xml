@@ -137,4 +137,21 @@
     <string name="barre_hint">Uses a barre</string>
     <string name="recorder_hint">Record an idea and come back to it later.</string>
     <string name="tab_recorder">Record</string>
+    <string name="onboarding_title">The tuner that works offline</string>
+    <string name="onboarding_body">We open the microphone for half a second, read the note and show how far off you are. No sign-up, no ads, nothing sent anywhere.</string>
+    <string name="onboarding_mic_title">Why the microphone</string>
+    <string name="onboarding_mic_body">The app needs to hear the string to know its pitch. All analysis happens on this device, in real time. Nothing is recorded to disk.</string>
+    <string name="onboarding_next">Continue</string>
+    <string name="onboarding_start">Start tuning</string>
+    <string name="onboarding_skip">Skip</string>
+    <string name="feature_tuner">Tuning for 34 instruments</string>
+    <string name="feature_metronome">A metronome that stays in time</string>
+    <string name="feature_offline">Runs 100% offline, with no internet permission</string>
+    <string name="pause">Pause</string>
+    <string name="start">Start</string>
+    <string name="widget_label">Affinador Universal</string>
+    <string name="widget_description">Tap a string to hear the reference pitch for your tuning</string>
+    <string name="widget_capo">capo %1$d</string>
+    <string name="widget_a4">A4 %1$d Hz</string>
+    <string name="widget_string_row">%1$d  %2$s</string>
 </resources>

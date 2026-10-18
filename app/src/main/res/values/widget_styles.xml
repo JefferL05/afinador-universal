@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!--
+      Estilo de uma linha do widget.
+
+      `android:minHeight` de 32dp: abaixo disso o alvo fica pequeno demais para
+      tocar com o polegar, e o widget fica com menos linhas. Cada linha é
+      clicável por inteiro, então a altura tem de servir para o toque, não
+      só para a leitura.
+    -->
+    <style name="WidgetStringRow">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:minHeight">32dp</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:paddingLeft">8dp</item>
+        <item name="android:paddingRight">8dp</item>
+        <item name="android:textColor">#FFE5E7EB</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:background">?android:attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:maxLines">1</item>
+    </style>
+</resources>

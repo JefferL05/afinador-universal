@@ -31,6 +31,8 @@ data class AppSettings(
     val keepScreenOn: Boolean,
     /** Casa do capo em uso, de 0 a 12. Zero significa "sem capo". */
     val capoFret: Int,
+    /** O usuário já viu a introdução. */
+    val onboardingSeen: Boolean,
 )
 
 /**
@@ -52,6 +54,7 @@ class SettingsRepository @Inject constructor(
         val VIBRATION = booleanPreferencesKey("vibration_enabled")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
         val CAPO_FRET = intPreferencesKey("capo_fret")
+        val ONBOARDING_SEEN = booleanPreferencesKey("onboarding_seen")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -66,6 +69,7 @@ class SettingsRepository @Inject constructor(
             vibrationEnabled = prefs[Keys.VIBRATION] ?: true,
             keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
             capoFret = (prefs[Keys.CAPO_FRET] ?: Capo.NONE).coerceIn(Capo.MIN_FRET, Capo.MAX_FRET),
+            onboardingSeen = prefs[Keys.ONBOARDING_SEEN] ?: false,
         )
     }
 
@@ -95,5 +99,9 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setCapoFret(fret: Int) = context.dataStore.edit {
         it[Keys.CAPO_FRET] = Capo.clamp(fret)
+    }
+
+    suspend fun setOnboardingSeen(seen: Boolean) = context.dataStore.edit {
+        it[Keys.ONBOARDING_SEEN] = seen
     }
 }

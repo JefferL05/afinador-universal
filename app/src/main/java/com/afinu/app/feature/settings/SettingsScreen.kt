@@ -59,6 +59,7 @@ import com.afinu.app.core.util.Capo
 import com.afinu.app.core.util.MusicTheory
 import com.afinu.app.data.catalog.InstrumentCatalog
 import com.afinu.app.data.repository.FavoriteTuning
+import com.afinu.app.ui.accessibility.labelAndState
 import com.afinu.app.ui.components.ChipRow
 import com.afinu.app.ui.components.movingSelectedToFront
 import kotlin.math.roundToInt
@@ -283,10 +284,14 @@ private fun ReferenceSection(state: SettingsUiState, vm: SettingsViewModel) {
             value = state.a4Hz,
             onValueChange = vm::setA4,
             valueRange = MusicTheory.MIN_A4_HZ..MusicTheory.MAX_A4_HZ,
-            // Um passo de 1 Hz por toque de dedo: 415..466 tem 51 valores, que
+            // Um passo de 1 Hz por toque de dedo: 415..466 tem 51 posições, que
             // é exatamente o número de posições de um track. Passos menores
-            // exigiriam precisão de sub-pixel para ser alcançáveis.
+            // exigiriam precisão de sub-pixel para serem alcançáveis.
             steps = (MusicTheory.MAX_A4_HZ - MusicTheory.MIN_A4_HZ).roundToInt() - 1,
+            modifier = Modifier.labelAndState(
+                label = stringResource(R.string.reference_a4),
+                value = "${state.a4Hz.toInt()} Hz",
+            ),
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             listOf(415, 432, 440, 442, 444, 466).forEach { preset ->
@@ -329,6 +334,10 @@ private fun ReferenceSection(state: SettingsUiState, vm: SettingsViewModel) {
             onValueChange = vm::setPitchOffset,
             valueRange = -50f..50f,
             steps = 99,
+            modifier = Modifier.labelAndState(
+                label = stringResource(R.string.pitch_offset),
+                value = state.pitchOffsetHint,
+            ),
         )
     }
 }

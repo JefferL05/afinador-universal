@@ -138,4 +138,21 @@
     <string name="barre_hint">Use batente</string>
     <string name="recorder_hint">Grave uma ideia e volte quando quiser.</string>
     <string name="tab_recorder">Gravar</string>
+    <string name="onboarding_title">O afinador que funciona sem internet</string>
+    <string name="onboarding_body">Abrimos o microfone por meio segundo, lemos a nota e mostramos a quanto você está fora. Sem cadastro, sem anúncio, sem enviar nada para lugar nenhum.</string>
+    <string name="onboarding_mic_title">Por que o microfone</string>
+    <string name="onboarding_mic_body">O app precisa ouvir a corda para saber a frequência. A análise acontece inteira neste aparelho, em tempo real. Nada é gravado em disco.</string>
+    <string name="onboarding_next">Continuar</string>
+    <string name="onboarding_start">Começar a afinar</string>
+    <string name="onboarding_skip">Pular</string>
+    <string name="feature_tuner">Afinação de 34 instrumentos</string>
+    <string name="feature_metronome">Metrônomo que não sai do tempo</string>
+    <string name="feature_offline">Funciona 100% offline, sem permissão de internet</string>
+    <string name="pause">Pausar</string>
+    <string name="start">Iniciar</string>
+    <string name="widget_label">Afinador Universal</string>
+    <string name="widget_description">Toque numa corda para ouvir a nota de referência da sua afinação</string>
+    <string name="widget_capo">capo %1$d</string>
+    <string name="widget_a4">A4 %1$d Hz</string>
+    <string name="widget_string_row">%1$d  %2$s</string>
 </resources>

@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Layout de widget com RemoteViews.
+
+  Restrições do RemoteViews que moldaram este arquivo:
+  - só aceita um conjunto pequeno de views (TextView, ImageView, LinearLayout...)
+  - NÃO aceita ConstraintLayout nem Box com sobreposição
+  - NÃO aceita tema: toda cor precisa ser explícita, senão o widget herda a cor
+    do launcher e fica ilegível em um tema escuro
+  - NÃO aceita `?attr/` nem `MaterialCardView`
+
+  Por isso tudo aqui usa cor literal e LinearLayout.
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@drawable/widget_background"
+    android:padding="12dp">
+
+    <LinearLayout
+        android:id="@+id/widget_header"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:clickable="true"
+        android:focusable="true"
+        android:paddingBottom="8dp">
+
+        <TextView
+            android:id="@+id/widget_instrument"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Violão" />
+
+        <TextView
+            android:id="@+id/widget_tuning"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textColor="#B0BEC5"
+            android:textSize="13sp"
+            android:maxLines="1"
+            android:ellipsize="end"
+            tools:text="Padrão · capo 3" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/widget_linha_1"
+        style="@style/WidgetStringRow"
+        tools:text="1  E2" />
+
+    <TextView
+        android:id="@+id/widget_linha_2"
+        style="@style/WidgetStringRow"
+        tools:text="2  A2" />
+
+    <TextView
+        android:id="@+id/widget_linha_3"
+        style="@style/WidgetStringRow"
+        tools:text="3  D3" />
+
+    <TextView
+        android:id="@+id/widget_linha_4"
+        style="@style/WidgetStringRow"
+        tools:text="4  G3" />
+
+    <TextView
+        android:id="@+id/widget_linha_5"
+        style="@style/WidgetStringRow"
+        tools:text="5  B3" />
+
+    <TextView
+        android:id="@+id/widget_linha_6"
+        style="@style/WidgetStringRow"
+        tools:text="6  E4" />
+
+    <TextView
+        android:id="@+id/widget_a4"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="6dp"
+        android:textColor="#607D8B"
+        android:textSize="11sp"
+        android:maxLines="1"
+        tools:text="A4 440 Hz" />
+</LinearLayout>

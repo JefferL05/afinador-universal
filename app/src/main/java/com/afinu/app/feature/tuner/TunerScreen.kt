@@ -39,6 +39,7 @@ import com.afinu.app.R
 import com.afinu.app.core.model.Instrument
 import com.afinu.app.core.util.MusicTheory
 import com.afinu.app.data.catalog.InstrumentCatalog
+import com.afinu.app.ui.accessibility.InTuneAnnouncer
 
 /**
  * Tela principal do app.
@@ -139,6 +140,15 @@ fun TunerScreen(
                 textAlign = TextAlign.Center,
             )
         }
+
+        // Nó invisível que o TalkBack lê quando a nota entra na zona. Sem ele,
+        // quem usa leitor de tela não tem nenhum sinal de que acertou: o bip tem
+        // 110 ms e passa despercebido.
+        InTuneAnnouncer(
+            trigger = state.justGotInTune,
+            reading = state.reading,
+            a4Hz = state.a4Hz,
+        )
     }
 }
 

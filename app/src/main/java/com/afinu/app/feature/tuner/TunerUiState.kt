@@ -39,6 +39,15 @@ data class TunerUiState(
     /** A agulha deve piscar? Usado para sinalizar "acabou de entrar na nota". */
     val noteJustChanged: Boolean = false,
 
+    /**
+     * A nota entrou na zona "no ponto" neste quadro.
+     *
+     * É uma **transição**, não um estado: fica true por exatamente um quadro e
+     * depois false. É o que dispara o bip e o anúncio do TalkBack uma única
+     * vez, em vez de a cada quadro enquanto a nota estiver afinada.
+     */
+    val justGotInTune: Boolean = false,
+
     /** Corda que o modo guiado está pedindo. */
     val guidedStringIndex: Int? = null,
 

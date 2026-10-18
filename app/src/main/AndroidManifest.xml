@@ -33,6 +33,31 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+    <receiver
+            android:name=".widget.TunerWidgetProvider"
+            android:exported="true"
+            android:label="@string/widget_label">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/widget_info" />
+        </receiver>
+
+        <!--
+          Toca a nota de referência do widget. Precisa ser exported porque o
+          PendingIntent vem do launcher, que roda em outro processo. O receiver
+          não faz nada além de tocar um tom: não lê nem grava nada.
+        -->
+        <receiver
+            android:name=".widget.ReferenceToneReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.afinu.app.PLAY_REFERENCE" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

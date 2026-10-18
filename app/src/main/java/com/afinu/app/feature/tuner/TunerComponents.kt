@@ -25,13 +25,16 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.afinu.app.core.audio.NoteReading
 import com.afinu.app.core.util.MusicTheory
+import com.afinu.app.ui.accessibility.TouchTarget
 import com.afinu.app.ui.theme.CloseAmber
 import com.afinu.app.ui.theme.OffRed
 import com.afinu.app.ui.theme.TunedGreen
@@ -84,14 +87,19 @@ fun NoteDial(
     val zoneColor = TunedGreen.copy(alpha = 0.28f)
 
     val description = accessibilityNote ?: reading?.let {
-        "${MusicTheory.spokenNameOf(it.midi)}"
+        "${MusicTheory.spokenNameOf(it.midi)}, ${"%.0f".format(it.cents)} cents"
     } ?: "Nenhuma nota detectada"
 
     Box(
         modifier = modifier
             .fillMaxWidth()
             .height(180.dp)
-            .semantics { contentDescription = description },
+            .semantics(mergeDescendants = true) {
+                // stateDescription em vez de contentDescription: o valor muda a
+                // cada quadro, e o TalkBack anuncia automaticamente quando um
+                // stateDescription muda, sem o usuário navegar até aqui.
+                stateDescription = description
+            },
         contentAlignment = Alignment.Center,
     ) {
         Canvas(modifier = Modifier.fillMaxWidth().height(180.dp)) {
@@ -178,13 +186,15 @@ fun CentsReadout(reading: NoteReading?, modifier: Modifier = Modifier) {
         fontWeight = FontWeight.Medium,
         color = color,
         textAlign = TextAlign.Center,
-        modifier = modifier.semantics { contentDescription = "$text cents" },
+        modifier = modifier.clearAndSetSemantics {
+            stateDescription = "$text cents"
+        },
     )
     Text(
         text = "cents",
         style = MaterialTheme.typography.labelSmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(top = 2.dp),
+        modifier = Modifier.clearAndSetSemantics { },
     )
 }
 
@@ -258,9 +268,16 @@ fun StringPicker(
                 shape = RoundedCornerShape(12.dp),
                 color = bg,
                 modifier = Modifier
-                    .size(48.dp)
-                    .semantics {
+                    .size(TouchTarget.MIN_SIZE)
+                    .clearAndSetSemantics {
                         contentDescription = labels.getOrNull(index) ?: "Corda ${index + 1}"
+                        // O estado muda sozinho quando o app identifica a
+                        // corda, e o TalkBack precisa avisar isso.
+                        stateDescription = when {
+                            isGuided -> "pedida agora"
+                            isDetected -> "detectada"
+                            else -> ""
+                        }
                     },
             ) {
                 Box(contentAlignment = Alignment.Center) {
