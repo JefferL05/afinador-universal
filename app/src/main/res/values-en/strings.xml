@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Universal Tuner</string>
+
+    <string name="listening">Listening</string>
+    <string name="idle">Idle</string>
+    <string name="change">Change</string>
+
+    <string name="mic_permission_title">The tuner needs to hear your instrument</string>
+    <string name="mic_permission_body">Audio is analysed on this device only. Nothing is recorded, uploaded or shared.</string>
+    <string name="mic_permission_button">Allow microphone</string>
+    <string name="mic_permission_later">Not now</string>
+
+    <string name="string_number">String %1$d, %2$s</string>
+
+    <string name="chromatic_mode_hint">Chromatic mode: every note is detected. Use it for wind instruments, thirds and microtonal tunings.</string>
+
+    <string name="tuning">Tuning</string>
+    <string name="instrument">Instrument</string>
+    <string name="reference_a4">Reference A4</string>
+    <string name="confirm_tone">Confirm tone</string>
+    <string name="confirm_tone_volume">Tone volume</string>
+    <string name="vibration">Vibration</string>
+    <string name="keep_screen_on">Keep screen on</string>
+    <string name="metronome">Metronome</string>
+    <string name="notes_card">Note card</string>
+    <string name="chords">Chords</string>
+    <string name="settings">Settings</string>
+
+    <string name="instrument_violao">Guitar</string>
+    <string name="instrument_guitarra7">7-string guitar</string>
+    <string name="instrument_guitarra8">8-string guitar</string>
+    <string name="instrument_violao12">12-string guitar</string>
+    <string name="instrument_baixo4">Bass 4 strings</string>
+    <string name="instrument_baixo5">Bass 5 strings</string>
+    <string name="instrument_baixo6">Bass 6 strings</string>
+    <string name="instrument_contrabaixo">Acoustic bass</string>
+    <string name="instrument_ukulele">Ukulele</string>
+    <string name="instrument_cavaquinho">Cavaquinho</string>
+    <string name="instrument_violino">Violin</string>
+    <string name="instrument_viola">Viola</string>
+    <string name="instrument_violoncelo">Cello</string>
+    <string name="instrument_banjo">Banjo</string>
+    <string name="instrument_bandolim">Mandolin</string>
+    <string name="instrument_mandolino">Mandola</string>
+    <string name="instrument_sitar">Sitar</string>
+    <string name="instrument_laud">Lute</string>
+    <string name="instrument_balalaika">Balalaika</string>
+    <string name="instrument_guitarra_pt">Portuguese guitar</string>
+    <string name="instrument_guzzar">Guzar</string>
+    <string name="instrument_lap_steel">Lap steel</string>
+    <string name="instrument_flauta_doce">Recorder</string>
+    <string name="instrument_flauta">Flute</string>
+    <string name="instrument_recorder">Tin whistle</string>
+    <string name="instrument_oboe">Oboe</string>
+    <string name="instrument_clarinete">Clarinet</string>
+    <string name="instrument_saxofone">Saxophone</string>
+    <string name="instrument_trompa">Trumpet</string>
+    <string name="instrument_trombone">Trombone</string>
+    <string name="instrument_tuba">Tuba</string>
+    <string name="instrument_harmonica">Harmonica</string>
+    <string name="instrument_gaita">Bagpipes</string>
+    <string name="instrument_piano">Piano / Keyboard</string>
+    <string name="instrument_acordeao">Accordion</string>
+    <string name="instrument_bateria">Drums / Percussion</string>
+</resources>

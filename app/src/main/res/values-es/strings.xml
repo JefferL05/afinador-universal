@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Afinador Universal</string>
+
+    <string name="listening">Escuchando</string>
+    <string name="idle">Detenido</string>
+    <string name="change">Cambiar</string>
+
+    <string name="mic_permission_title">El afinador necesita oír tu instrumento</string>
+    <string name="mic_permission_body">El audio se analiza solo en este dispositivo. No se graba, se envía ni se comparte.</string>
+    <string name="mic_permission_button">Permitir micrófono</string>
+    <string name="mic_permission_later">Ahora no</string>
+
+    <string name="string_number">Cuerda %1$d, %2$s</string>
+
+    <string name="chromatic_mode_hint">Modo cromático: se detectan todas las notas. Úsalo para instrumentos de viento, thirds y afinaciones microtonales.</string>
+
+    <string name="tuning">Afinación</string>
+    <string name="instrument">Instrumento</string>
+    <string name="reference_a4">La4 de referencia</string>
+    <string name="confirm_tone">Pitido de confirmación</string>
+    <string name="confirm_tone_volume">Volumen del pitido</string>
+    <string name="vibration">Vibración</string>
+    <string name="keep_screen_on">Mantener pantalla encendida</string>
+    <string name="metronome">Metrónomo</string>
+    <string name="notes_card">Carta de notas</string>
+    <string name="chords">Acordes</string>
+    <string name="settings">Ajustes</string>
+
+    <string name="instrument_violao">Guitarra</string>
+    <string name="instrument_guitarra7">Guitarra de 7 cuerdas</string>
+    <string name="instrument_guitarra8">Guitarra de 8 cuerdas</string>
+    <string name="instrument_violao12">Guitarra de 12 cuerdas</string>
+    <string name="instrument_baixo4">Bajo de 4 cuerdas</string>
+    <string name="instrument_baixo5">Bajo de 5 cuerdas</string>
+    <string name="instrument_baixo6">Bajo de 6 cuerdas</string>
+    <string name="instrument_contrabaixo">Contrabajo acústico</string>
+    <string name="instrument_ukulele">Ukulele</string>
+    <string name="instrument_cavaquinho">Cavaquinho</string>
+    <string name="instrument_violino">Violín</string>
+    <string name="instrument_viola">Viola</string>
+    <string name="instrument_violoncelo">Violonchelo</string>
+    <string name="instrument_banjo">Banjo</string>
+    <string name="instrument_bandolim">Mandolina</string>
+    <string name="instrument_mandolino">Mandola</string>
+    <string name="instrument_sitar">Sitar</string>
+    <string name="instrument_laud">Laúd</string>
+    <string name="instrument_balalaika">Balalaika</string>
+    <string name="instrument_guitarra_pt">Guitarra portuguesa</string>
+    <string name="instrument_guzzar">Guzar</string>
+    <string name="instrument_lap_steel">Lap steel</string>
+    <string name="instrument_flauta_doce">Flauta dulce</string>
+    <string name="instrument_flauta">Flauta</string>
+    <string name="instrument_recorder">Chiflata</string>
+    <string name="instrument_oboe">Oboe</string>
+    <string name="instrument_clarinete">Clarinete</string>
+    <string name="instrument_saxofone">Saxofón</string>
+    <string name="instrument_trompa">Trompeta</string>
+    <string name="instrument_trombone">Trombón</string>
+    <string name="instrument_tuba">Tuba</string>
+    <string name="instrument_harmonica">Armónica</string>
+    <string name="instrument_gaita">Gaita</string>
+    <string name="instrument_piano">Piano / Teclado</string>
+    <string name="instrument_acordeao">Acordeón</string>
+    <string name="instrument_bateria">Batería / Percusión</string>
+</resources>

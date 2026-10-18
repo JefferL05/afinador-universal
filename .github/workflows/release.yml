@@ -1,0 +1,51 @@
+name: Release
+
+# Publica um APK assinado e um AAB quando uma tag v* e criada.
+on:
+  push:
+    tags: [ 'v*' ]
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      # A keystore vem do repositorio de segredos; NUNCA va para o git.
+      - name: Decodificar keystore
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          echo "$KEYSTORE_B64" | base64 -d > afinador.jks
+          cat > keystore.properties <<EOF
+          storeFile=${{ github.workspace }}/afinador.jks
+          storePassword=$KEYSTORE_PASSWORD
+          keyAlias=$KEY_ALIAS
+          keyPassword=$KEY_PASSWORD
+          EOF
+
+      - name: Testes
+        run: ./gradlew testDebugUnitTest
+
+      - name: APK release assinado
+        run: ./gradlew assembleRelease
+
+      - name: AAB para a Play Store
+        run: ./gradlew bundleRelease
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: afinador-release
+          path: |
+            app/build/outputs/apk/release/*.apk
+            app/build/outputs/bundle/release/*.aab

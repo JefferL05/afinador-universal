@@ -1,0 +1,17 @@
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+captures/
+.externalNativeBuild
+.cxx
+
+# NUNCA commitar segredos
+keystore.properties
+*.jks
+*.keystore
+
+# Exceções: o exemplo e o .gitignore podem ir para o git
+!keystore.properties.example
