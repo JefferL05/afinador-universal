@@ -4,6 +4,7 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Timer
@@ -45,6 +46,11 @@ enum class Destination(
         route = "acordes",
         labelRes = R.string.tab_chords,
         icon = Icons.Default.LibraryMusic,
+    ),
+    GRAVAR(
+        route = "gravar",
+        labelRes = R.string.tab_recorder,
+        icon = Icons.Default.Mic,
     ),
     AJUSTES(
         route = "ajustes",

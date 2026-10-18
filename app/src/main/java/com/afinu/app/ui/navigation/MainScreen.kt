@@ -19,6 +19,7 @@ import androidx.navigation.compose.rememberNavController
 import com.afinu.app.feature.chords.ChordsScreen
 import com.afinu.app.feature.metronome.MetronomeScreen
 import com.afinu.app.feature.notes.NotesCardScreen
+import com.afinu.app.feature.recorder.RecorderScreen
 import com.afinu.app.feature.settings.SettingsScreen
 import com.afinu.app.feature.tuner.TunerScreen
 
@@ -82,6 +83,7 @@ fun MainScreen(
             composable(Destination.METRONOME.route) { MetronomeScreen() }
             composable(Destination.NOTAS.route) { NotesCardScreen() }
             composable(Destination.ACORDES.route) { ChordsScreen() }
+            composable(Destination.GRAVAR.route) { RecorderScreen() }
             composable(Destination.AJUSTES.route) { SettingsScreen() }
         }
     }

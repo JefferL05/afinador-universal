@@ -117,4 +117,24 @@
     <string name="instrument_acordeao">Accordion</string>
     <string name="instrument_bateria">Drums / Percussion</string>
     <string name="capo_fret">Capo %1$d</string>
+    <string name="bpm_label">BPM</string>
+    <string name="meter">Time signature</string>
+    <string name="subdivision">Subdivision</string>
+    <string name="tempos">Tempos</string>
+    <string name="chords_root">Chord</string>
+    <string name="chords_quality">Type</string>
+    <string name="chords_no_shapes">No shape fits this tuning.</string>
+    <string name="fretboard">Neck</string>
+    <string name="fretboard_note">Note</string>
+    <string name="recorder">Record idea</string>
+    <string name="recorder_start">Record</string>
+    <string name="recorder_stop">Stop</string>
+    <string name="recorder_saved">Recording saved</string>
+    <string name="recorder_failed">Could not record</string>
+    <string name="recorder_empty">No recordings yet.</string>
+    <string name="recorder_delete">Delete recording</string>
+    <string name="muted_string">Muted string</string>
+    <string name="barre_hint">Uses a barre</string>
+    <string name="recorder_hint">Record an idea and come back to it later.</string>
+    <string name="tab_recorder">Record</string>
 </resources>

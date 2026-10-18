@@ -3,9 +3,8 @@
 Afinador de instrumentos musicais para Android. **Violão, guitarra, baixo e mais
 33 instrumentos** — com foco em afinar rápido, em qualquer lugar, sem internet.
 
-> **Estado atual:** Fases 1 a 4 concluídas (fundação, motor de áudio, tela de
-> afinador, navegação/ajustes/favoritos/capo). Metrônomo e acordes ainda não
-> implementados — ver [Fases](#fases-restantes).
+> **Estado atual:** Fases 1 a 5 concluídas. Restam onboarding/acessibilidade
+> (6) e CI/release/assinatura (7) — ver [Fases](#fases-restantes).
 
 ---
 
@@ -156,6 +155,55 @@ instrumento. Mostrar E2 seria mostrar a nota física, não a musical.
 
 ---
 
+## O metrônomo não pode derivar
+
+Um metrônomo que "parece funcionar" e vai arrastando é **pior do que nenhum**:
+o músico acelera junto sem perceber, porque todo mundo toca apoiado na
+referência que o metrônomo dá.
+
+O relógio mestre é o `AudioTrack`, não o sistema. Cada clique é escrito N
+amostras depois do anterior. A armadilha é o arredondamento: a 127 BPM um tempo
+mede 22 677,16 amostras, e só existem posições inteiras. Medi as três formas de
+escolher, simulando 10 minutos:
+
+| Forma de calcular a posição do clique | Erro em 10 min |
+|---|---|
+| Somar o inteiro arredondado a cada clique | **262 ms** |
+| Andar em compassos inteiros (4 × 22 677) | **262 ms** |
+| `round(contador × 22 677,16)` — contador absoluto | **0 ms** |
+
+As duas primeiras derivam porque cada passo carrega um erro próprio. Só a
+terceira fica presa em meio amostra, para sempre. O motor usa um contador de
+subdivisões desde o início e recalcula a posição a partir dele —
+nunca `posição + passo`.
+
+`MetronomeTimingTest` simula 360 000 cliques (10 minutos a 300 BPM com
+subdivisão quádrupla) e exige erro < 0,5 amostra. O pior caso medido nos testes:
+**0,4965 amostra, ou 10 microssegundos**.
+
+---
+
+## Acordes derivados da afinação, não guardados
+
+Um diagrama de acorde pronto só existe para afinação padrão. Com drop D, capo ou
+ukulele, a mesma figura passa a representar outro acorde — e aí a imagem está
+errada. Este app não guarda diagramas: ele **deriva** as formas a partir da
+afinação efetiva, buscando por janela deslizante de 5 casas (todo mundo alcança
+uma casa 8 acima da menor, então toda forma tocável cabe em alguma janela).
+
+Ao escolher um acorde, o app encontra as formas válidas: todas as notas
+pertencem ao acorde, o baixo é uma nota do acorde e a pegada cabe na mão.
+
+### Um detalhe que quebraria tudo
+
+As classes de altura de um acorde são **relativas à tônica**. Em Si menor, o
+offset 0 é a nota Si, de classe 11 — não 0. Comparar a nota absoluta contra os
+offsets rejeitaria a própria tônica de qualquer acorde que não seja de Dó, e o
+buscador devolveria formas erradas ou nenhuma. `ChordQuality.contains(rootMidi,
+midi)` converte para intervalo antes de comparar.
+
+---
+
 ## Arquitetura
 
 ```
@@ -171,9 +219,11 @@ data/
 feature/
   tuner/     TunerScreen, TunerViewModel, TunerLogic, componentes Compose
   settings/  SettingsScreen, SettingsViewModel
-  notes/     Cartão de notas (funciona)
-  metronome/ Marcador de posição
-  chords/    Marcador de posição
+  notes/     Cartão de notas
+  metronome/ MetronomeEngine, MetronomeTiming, MetronomeScreen
+  chords/    ChordsViewModel, ChordsScreen (diagrama e braço)
+  recorder/  IdeaRecorder, RecorderScreen
+core/util/   MusicTheory, Capo, Fretboard, ChordFinder, ChordNames
 ui/
   navigation/MainScreen (bottom bar), Destination
   components/ChipRow
@@ -204,7 +254,7 @@ Regras que o código segue:
 | 2 | Motor de áudio (YIN) + testes | ✅ |
 | 3 | Tela de afinador, medidor, feedback | ✅ |
 | 4 | Navegação, ajustes, favoritos, capo, cartão de notas | ✅ |
-| 5 | Metrônomo, acordes, fretboard, gravador | ⬜ |
+| 5 | Metrônomo, acordes, braço, gravador | ✅ |
 | 6 | Onboarding, acessibilidade, widgets | ⬜ |
 | 7 | CI/release, assinatura, Play Store | ⬜ |
 
