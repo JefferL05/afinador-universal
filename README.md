@@ -3,9 +3,9 @@
 Afinador de instrumentos musicais para Android. **Violão, guitarra, baixo e mais
 33 instrumentos** — com foco em afinar rápido, em qualquer lugar, sem internet.
 
-> **Estado atual:** Fases 1 a 3 concluídas (fundação, motor de áudio e tela de
-> afinador). Metrônomo, acordes, fretboard e gravador ainda não implementados —
-> ver [Fases](#fases-restantes).
+> **Estado atual:** Fases 1 a 4 concluídas (fundação, motor de áudio, tela de
+> afinador, navegação/ajustes/favoritos/capo). Metrônomo e acordes ainda não
+> implementados — ver [Fases](#fases-restantes).
 
 ---
 
@@ -137,31 +137,62 @@ lugar é a forma mais comum de um afinador errar a 4ª corda.
 
 ---
 
+## O simulador de capo
+
+Um capo **não** desafina o instrumento: encurta o vibrador em todas as cordas
+pelo mesmo tanto. Isso equivale a uma translação de N semitons aplicada à
+afinação inteira, e os intervalos entre cordas ficam intactos — há um teste que
+verifica isso explicitamente para as casas mais usadas.
+
+A consequência prática é que **o medidor mira a nota com o capo aplicado**:
+
+| | Sem capo | Capo na 3ª casa |
+|---|---|---|
+| 6ª corda do violão | E2 (82,41 Hz) | **G2 (98,00 Hz)** |
+| 1ª corda do violão | E4 (329,63 Hz) | **G4 (392,00 Hz)** |
+
+O músico afina o que ele **ouve**, e é com isso que compara com outro
+instrumento. Mostrar E2 seria mostrar a nota física, não a musical.
+
+---
+
 ## Arquitetura
 
 ```
 core/
   audio/     YinDetector, AudioCapture, PitchSmoother, NoteMapper
   model/     Note, Instrument, TuningPreset
-  util/      MusicTheory (conversões nota <-> frequência)
+  util/      MusicTheory (nota <-> frequência), Capo
 data/
   catalog/   InstrumentCatalog (dados puros de todos os instrumentos)
   prefs/     SettingsRepository (DataStore)
+  db/        Room: AppDatabase, FavoriteTuningDao
+  repository/FavoritesRepository, FavoritesCodec (import/export JSON)
 feature/
   tuner/     TunerScreen, TunerViewModel, TunerLogic, componentes Compose
-ui/theme/    Material 3 + Material You
+  settings/  SettingsScreen, SettingsViewModel
+  notes/     Cartão de notas (funciona)
+  metronome/ Marcador de posição
+  chords/    Marcador de posição
+ui/
+  navigation/MainScreen (bottom bar), Destination
+  components/ChipRow
+  theme/     Material 3 + Material You
 ```
 
 Regras que o código segue:
 
 - **Zero alocação no caminho quente.** `AudioCapture` e `YinDetector` reutilizam
   buffers. O detector dispara ~12x por segundo.
-- **Regras de decisão isoladas de Android.** `TunerLogic` e `NoteMapper` são
-  Kotlin puro, testáveis sem emulador nem microfone.
-- **UI como função do estado.** `TunerScreen` desenha `TunerUiState` e não
-  calcula nada.
+- **Regras de decisão isoladas de Android.** `TunerLogic`, `Capo` e `NoteMapper`
+  são Kotlin puro, testáveis sem emulador nem microfone.
+- **UI como função do estado.** As telas desenham `UiState` e não calculam nada.
+- **Favoritos guardam IDs, não notas.** Corrigir um erro no catálogo corrige
+  também os favoritos já salvos pelo usuário.
 - **Uma permissão só.** `RECORD_AUDIO`. O manifesto **não declara `INTERNET`** —
   não há caminho de código capaz de enviar áudio para fora.
+- **Trocar de instrumento reinicia a captura; trocar de afinação ou capo não.**
+  Só o instrumento muda o tamanho da janela de análise.
 
 ---
 
@@ -172,8 +203,8 @@ Regras que o código segue:
 | 1 | Fundação Gradle, Compose, Hilt, tema | ✅ |
 | 2 | Motor de áudio (YIN) + testes | ✅ |
 | 3 | Tela de afinador, medidor, feedback | ✅ |
-| 4 | Navegação, ajustes, favoritos, capo | ⬜ |
-| 5 | Metrônomo, cartão de notas, acordes, fretboard, gravador | ⬜ |
+| 4 | Navegação, ajustes, favoritos, capo, cartão de notas | ✅ |
+| 5 | Metrônomo, acordes, fretboard, gravador | ⬜ |
 | 6 | Onboarding, acessibilidade, widgets | ⬜ |
 | 7 | CI/release, assinatura, Play Store | ⬜ |
 

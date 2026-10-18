@@ -11,6 +11,7 @@ import com.afinu.app.core.audio.YinDetector
 import com.afinu.app.core.model.Instrument
 import com.afinu.app.core.model.InstrumentFamily
 import com.afinu.app.core.model.TuningPreset
+import com.afinu.app.core.util.Capo
 import com.afinu.app.data.catalog.InstrumentCatalog
 import com.afinu.app.data.prefs.AppSettings
 import com.afinu.app.data.prefs.SettingsRepository
@@ -64,6 +65,12 @@ class TunerViewModel @Inject constructor(
     private var currentTuning: TuningPreset = InstrumentCatalog.default.defaultTuning
     private var settings: AppSettings? = null
 
+    /**
+     * Afinação com o capo aplicado. É o alvo do medidor: com capo na 3ª casa,
+     * a 6ª corda afinada em E2 soa G2, e é com G2 que o músico compara.
+     */
+    private var currentEffectiveTuning: TuningPreset = InstrumentCatalog.default.defaultTuning
+
     /** A última leitura estava dentro da zona? Controla a borda do bip. */
     private var wasInTune = false
 
@@ -77,12 +84,13 @@ class TunerViewModel @Inject constructor(
     private fun observeSettings() {
         viewModelScope.launch {
             settingsRepository.settings.collect { s ->
-                val mudouInstrumento = s.instrumentId != currentInstrument.id ||
-                    s.tuningId != currentTuning.id
+                // Só a troca de instrumento reinicia a captura, porque é a
+                // única coisa que muda o tamanho da janela de análise. Trocar de
+                // afinação ou de capo altera o alvo do medidor e sai de graça.
+                val mudouInstrumento = s.instrumentId != currentInstrument.id
                 applySettings(s)
 
-                if (mudouInstrumento && audioJob != null) {
-                    // O tamanho da janela mudou: reinicia a captura.
+                if (audioJob != null && mudouInstrumento) {
                     stopAudio()
                     startAudio(hasPermission = true)
                 } else if (audioJob == null) {
@@ -100,6 +108,7 @@ class TunerViewModel @Inject constructor(
         currentInstrument = instrument
         currentTuning = tuning
         settings = s
+        currentEffectiveTuning = Capo.effectiveOrUnshifted(tuning, s.capoFret)
 
         val window = YinDetector.windowFor(instrument.needsDeepWindow)
         if (window != activeWindow) {
@@ -118,6 +127,8 @@ class TunerViewModel @Inject constructor(
             it.copy(
                 instrument = instrument,
                 tuning = tuning,
+                effectiveTuning = currentEffectiveTuning,
+                capoFret = s.capoFret,
                 a4Hz = s.a4Hz,
                 pitchOffsetCents = s.pitchOffsetCents,
                 confirmToneEnabled = s.confirmToneEnabled,
@@ -209,7 +220,7 @@ class TunerViewModel @Inject constructor(
         val stringIndex = if (reading != null &&
             currentInstrument.family == InstrumentFamily.STRINGS
         ) {
-            TunerLogic.detectString(currentTuning, reading.frequencyHz, s.a4Hz)
+            TunerLogic.detectString(currentEffectiveTuning, reading.frequencyHz, s.a4Hz)
         } else {
             null
         }
@@ -239,7 +250,7 @@ class TunerViewModel @Inject constructor(
         val guided = _uiState.value.guidedStringIndex
         val advanced = if (TunerLogic.shouldAdvanceGuided(guided, stringIndex, inTune)) {
             val next = guided + 1
-            if (next < currentTuning.midiNotes.size) next else null
+            if (next < currentEffectiveTuning.midiNotes.size) next else null
         } else {
             guided
         }
@@ -264,6 +275,11 @@ class TunerViewModel @Inject constructor(
 
     fun selectTuning(id: String) {
         viewModelScope.launch { settingsRepository.setTuning(id) }
+    }
+
+    /** Trocar o capo reexibe a afinação efetiva; não exige reiniciar o áudio. */
+    fun setCapoFret(fret: Int) {
+        viewModelScope.launch { settingsRepository.setCapoFret(fret) }
     }
 
     fun setA4(hz: Float) {

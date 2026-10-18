@@ -1,6 +1,7 @@
 package com.afinu.app.data.catalog
 
 import com.afinu.app.core.model.InstrumentFamily
+import com.afinu.app.core.util.Capo
 import com.afinu.app.core.util.MusicTheory
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -81,6 +82,48 @@ class InstrumentCatalogTest {
         // oitava mais uma quinta. Modelar as 12 individualmente exigiria duas
         // cordas em uníssono, o que é fisicamente impossível.
         assertEquals(6, InstrumentCatalog.violao12.defaultTuning.stringCount)
+    }
+
+    @Test
+    fun `toda afinacao aceita capo ate a decima segunda casa`() {
+        // Sem capo no violão, ukulele ou baixo, a tela de ajustes produziria uma
+        // afinação fora da faixa MIDI e o medidor ficaria sem alvo.
+        InstrumentCatalog.all
+            .filter { it.family == InstrumentFamily.STRINGS }
+            .forEach { instrumento ->
+                instrumento.tunings.forEach { afinacao ->
+                    (Capo.MIN_FRET..Capo.MAX_FRET).forEach { fret ->
+                        val efetiva = Capo.effectiveOrUnshifted(afinacao, fret)
+                        assertEquals(
+                            "${instrumento.id}/${afinacao.id} capo $fret perdeu cordas",
+                            afinacao.stringCount,
+                            efetiva.stringCount,
+                        )
+                        assertTrue(
+                            "${instrumento.id}/${afinacao.id} capo $fret saiu da faixa",
+                            efetiva.midiNotes.all { it in 0..127 },
+                        )
+                    }
+                }
+            }
+    }
+
+    @Test
+    fun `toda afinacao aceita deslocamento de ate doze semitons`() {
+        // Cobre o outro lado da transposicao, usado por quem quiser afinar
+        // meio tom abaixo sem trocar o instrumento.
+        InstrumentCatalog.all
+            .filter { it.family == InstrumentFamily.STRINGS }
+            .forEach { instrumento ->
+                instrumento.tunings.forEach { afinacao ->
+                    val abaixo = Capo.effectiveOrUnshifted(afinacao, -12)
+                    assertEquals(
+                        "${instrumento.id}/${afinacao.id} perdeu cordas ao descer uma oitava",
+                        afinacao.stringCount,
+                        abaixo.stringCount,
+                    )
+                }
+            }
     }
 
     @Test

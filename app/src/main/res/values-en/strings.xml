@@ -27,6 +27,59 @@
     <string name="chords">Chords</string>
     <string name="settings">Settings</string>
 
+    <!-- Tabs -->
+    <string name="tab_tuner">Tuner</string>
+    <string name="tab_metronome">Metronome</string>
+    <string name="tab_notes">Notes</string>
+    <string name="tab_chords">Chords</string>
+    <string name="tab_settings">Settings</string>
+
+    <!-- Settings: sections -->
+    <string name="reference">Reference</string>
+    <string name="feedback">Feedback</string>
+    <string name="favorites">Favourites</string>
+    <string name="about">About</string>
+
+    <string name="capo">Capo</string>
+    <string name="no_capo">None</string>
+    <string name="capo_explainer">A capo transposes every string by the same amount. The tuner then targets the note you actually hear.</string>
+    <string name="capo_effect">Open: %1$s. With the current capo: %2$s.</string>
+
+    <string name="no_tuning_for_freeform">This instrument has no fixed tuning. The app detects any note automatically.</string>
+
+    <string name="reference_a4_value">Reference A4: %1$d Hz</string>
+    <string name="a4_reference_value">Set to %1$d Hz</string>
+    <string name="pitch_offset">Fine tuning</string>
+    <string name="pitch_offset_reset">Reset fine tuning</string>
+
+    <string name="save_current_as_favorite">Save current tuning</string>
+    <string name="save_favorite_title">Save favourite</string>
+    <string name="favorite_name">Name</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="close">Close</string>
+    <string name="copy">Copy</string>
+    <string name="import_action">Import</string>
+
+    <string name="export_favorites">Export</string>
+    <string name="import_favorites">Import</string>
+    <string name="export_explainer">Copy this text to take your tunings to another device.</string>
+    <string name="paste_json">Paste the exported text here</string>
+    <string name="import_success">%1$d tunings imported</string>
+    <string name="import_failure">Could not read that text</string>
+
+    <string name="no_favorites">No favourites yet. Save the tuning you use on stage so you can find it fast later.</string>
+    <string name="favorite_stale">Instrument or tuning no longer exists in this version</string>
+    <string name="delete_favorite_title">Delete favourite?</string>
+    <string name="delete_favorite_body">This action cannot be undone.</string>
+
+    <string name="version">Version %1$s</string>
+    <string name="privacy_short">Runs 100%% offline. No internet permission, no data collected, nothing recorded.</string>
+
+    <string name="metronome_coming_soon">The metronome uses audio-sample scheduling to stay in time — this is being built.</string>
+    <string name="chords_coming_soon">Diagrams respect your tuning and capo. Coming soon.</string>
+
     <string name="instrument_violao">Guitar</string>
     <string name="instrument_guitarra7">7-string guitar</string>
     <string name="instrument_guitarra8">8-string guitar</string>
@@ -63,4 +116,5 @@
     <string name="instrument_piano">Piano / Keyboard</string>
     <string name="instrument_acordeao">Accordion</string>
     <string name="instrument_bateria">Drums / Percussion</string>
+    <string name="capo_fret">Capo %1$d</string>
 </resources>

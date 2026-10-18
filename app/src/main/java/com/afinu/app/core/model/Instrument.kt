@@ -10,26 +10,11 @@ enum class InstrumentFamily {
 }
 
 /**
- * Uma afinação (padrão ou alternativa) de um instrumento de cordas.
+ * Um instrumento suportado pelo afinador.
  *
- * [midiNotes] vai sempre do grave ao agudo e o número de elementos é o número
- * de cordas, inclusive nas de 7, 8 e 12 cordas e no ukulele, que tem as
- * notas fora de ordem se lidas da corda mais aguda para a mais grave.
+ * [displayName] é o rótulo embutido em português e serve de reserva para o
+ * caso o recurso de string não exista. Ver `InstrumentCatalog.displayNameResId`.
  */
-data class TuningPreset(
-    val id: String,
-    val label: String,
-    val midiNotes: List<Int>,
-) {
-    init {
-        require(midiNotes.isNotEmpty()) { "Uma afinação precisa de pelo menos uma corda" }
-        require(midiNotes.all { it in 0..127 }) { "Nota MIDI inválida em $id" }
-    }
-
-    val stringCount: Int get() = midiNotes.size
-}
-
-/** Um instrumento suportado pelo afinador. */
 data class Instrument(
     val id: String,
     val displayName: String,
@@ -46,13 +31,13 @@ data class Instrument(
     /** Afinação usada quando o app abre. */
     val defaultTuning: TuningPreset get() = tunings.first()
 
-    /** Nota mais grave possível — define o tamanho da janela de análise. */
-    val lowestMidi: Int get() = tunings.minOf { t -> t.midiNotes.min() }
+    /** Nota mais grave possível entre todas as afinações — define a janela do detector. */
+    val lowestMidi: Int get() = tunings.minOf { it.lowestMidi }
 
     /**
-     * Instrumentos com fundamental abaixo de D3 precisam de uma janela de
-     * análise maior: a janela precisa cobrir pelo menos ~2 períodos do sinal,
-     * e um E1 (41 Hz) tem período de 1165 amostras a 48 kHz.
+     * Instrumentos com fundamental abaixo de D3 precisam de janela de análise
+     * maior: um E1 (41 Hz) tem período de 1165 amostras a 48 kHz, e a janela
+     * precisa cobrir cerca de dois períodos.
      */
     val needsDeepWindow: Boolean get() = lowestMidi <= MIDI_D3
 }

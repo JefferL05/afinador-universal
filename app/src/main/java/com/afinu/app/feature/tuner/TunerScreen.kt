@@ -69,8 +69,9 @@ fun TunerScreen(
 
         TopBar(
             instrument = state.instrument ?: InstrumentCatalog.default,
-            tuningLabel = state.tuning?.label.orEmpty(),
+            tuningLabel = state.tuningLabel.orEmpty(),
             a4Hz = state.a4Hz,
+            capoFret = state.capoFret,
             isListening = state.isListening,
             onSelectInstrument = viewModel::selectInstrument,
             onSelectTuning = viewModel::selectTuning,
@@ -91,7 +92,7 @@ fun TunerScreen(
         NoteReadout(
             reading = state.reading,
             stringLabel = state.detectedStringIndex?.let { index ->
-                state.tuning?.let { tuning ->
+                state.effectiveTuning?.let { tuning ->
                     stringResource(
                         R.string.string_number,
                         index + 1,
@@ -114,7 +115,9 @@ fun TunerScreen(
 
         Spacer(Modifier.height(28.dp))
 
-        val tuning = state.tuning
+        // A afinação efetiva já tem o capo embutido: com capo na 3ª casa, a 6ª
+        // corda de E2 aparece como G2, que é a nota que o músico ouve.
+        val tuning = state.effectiveTuning
         if (tuning != null && !state.isChromatic) {
             StringPicker(
                 count = tuning.stringCount,
@@ -144,52 +147,109 @@ private fun TopBar(
     instrument: Instrument,
     tuningLabel: String,
     a4Hz: Float,
+    capoFret: Int,
     isListening: Boolean,
     onSelectInstrument: (String) -> Unit,
     onSelectTuning: (String) -> Unit,
 ) {
     var menuAberto by remember { mutableStateOf(false) }
+    var tuningMenuAberto by remember { mutableStateOf(false) }
+    val instrumentAtual = InstrumentCatalog.find(instrument.id)
 
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Column(Modifier.weight(1f)) {
-            Text(
-                text = InstrumentCatalog.find(instrument.id).displayName,
-                style = MaterialTheme.typography.headlineMedium,
-            )
-            Text(
-                text = "$tuningLabel · ${a4Hz.toInt()} Hz",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
-        }
-
-        RecordingDot(isListening)
-
-        Surface(
-            onClick = { menuAberto = true },
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceVariant,
+    Column(Modifier.fillMaxWidth()) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            Column(Modifier.weight(1f)) {
+                Text(
+                    text = instrumentAtual.displayName,
+                    style = MaterialTheme.typography.headlineMedium,
+                )
+                Text(
+                    text = "$a4Hz Hz",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+
+            RecordingDot(isListening)
+
+            Surface(
+                onClick = { menuAberto = true },
+                shape = MaterialTheme.shapes.medium,
+                color = MaterialTheme.colorScheme.surfaceVariant,
             ) {
-                Icon(Icons.Default.LibraryMusic, contentDescription = null)
-                Text(stringResource(R.string.change), style = MaterialTheme.typography.labelLarge)
+                Row(
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    Icon(Icons.Default.LibraryMusic, contentDescription = null)
+                    Text(stringResource(R.string.change), style = MaterialTheme.typography.labelLarge)
+                }
+            }
+
+            DropdownMenu(
+                expanded = menuAberto,
+                onDismissRequest = { menuAberto = false },
+            ) {
+                InstrumentCatalog.all.forEach { item ->
+                    DropdownMenuItem(
+                        text = { Text(item.displayName) },
+                        onClick = {
+                            onSelectInstrument(item.id)
+                            menuAberto = false
+                        },
+                    )
+                }
             }
         }
 
-        DropdownMenu(expanded = menuAberto, onDismissRequest = { menuAberto = false }) {
-            InstrumentCatalog.all.forEach { item ->
+        // Afinação e capo ficam logo abaixo do instrumento, e não escondidos nos
+        // ajustes: são as duas coisas que mais mudam entre Websites, e a linha
+        // precisa dizer com clareza o que o medidor está mirando agora.
+        Spacer(Modifier.height(8.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Surface(
+                onClick = { tuningMenuAberto = true },
+                shape = MaterialTheme.shapes.small,
+                color = MaterialTheme.colorScheme.secondaryContainer,
+            ) {
+                Text(
+                    text = tuningLabel,
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                )
+            }
+            if (capoFret != 0) {
+                Surface(
+                    shape = MaterialTheme.shapes.small,
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                ) {
+                    Text(
+                        text = stringResource(R.string.capo_fret, capoFret),
+                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                    )
+                }
+            }
+        }
+
+        DropdownMenu(
+            expanded = tuningMenuAberto,
+            onDismissRequest = { tuningMenuAberto = false },
+        ) {
+            instrumentAtual.tunings.forEach { afinacao ->
                 DropdownMenuItem(
-                    text = { Text(item.displayName) },
+                    text = { Text(afinacao.label) },
                     onClick = {
-                        onSelectInstrument(item.id)
-                        menuAberto = false
+                        onSelectTuning(afinacao.id)
+                        tuningMenuAberto = false
                     },
                 )
             }

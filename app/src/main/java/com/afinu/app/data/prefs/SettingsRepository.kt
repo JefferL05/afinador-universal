@@ -4,8 +4,10 @@ import android.content.Context
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.afinu.app.core.util.Capo
 import com.afinu.app.core.util.MusicTheory
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -27,6 +29,8 @@ data class AppSettings(
     val confirmToneVolume: Float,
     val vibrationEnabled: Boolean,
     val keepScreenOn: Boolean,
+    /** Casa do capo em uso, de 0 a 12. Zero significa "sem capo". */
+    val capoFret: Int,
 )
 
 /**
@@ -47,6 +51,7 @@ class SettingsRepository @Inject constructor(
         val TONE_VOL = floatPreferencesKey("confirm_tone_volume")
         val VIBRATION = booleanPreferencesKey("vibration_enabled")
         val KEEP_SCREEN_ON = booleanPreferencesKey("keep_screen_on")
+        val CAPO_FRET = intPreferencesKey("capo_fret")
     }
 
     val settings: Flow<AppSettings> = context.dataStore.data.map { prefs ->
@@ -60,6 +65,7 @@ class SettingsRepository @Inject constructor(
             confirmToneVolume = (prefs[Keys.TONE_VOL] ?: 0.45f).coerceIn(0f, 1f),
             vibrationEnabled = prefs[Keys.VIBRATION] ?: true,
             keepScreenOn = prefs[Keys.KEEP_SCREEN_ON] ?: true,
+            capoFret = (prefs[Keys.CAPO_FRET] ?: Capo.NONE).coerceIn(Capo.MIN_FRET, Capo.MAX_FRET),
         )
     }
 
@@ -86,4 +92,8 @@ class SettingsRepository @Inject constructor(
 
     suspend fun setKeepScreenOn(enabled: Boolean) =
         context.dataStore.edit { it[Keys.KEEP_SCREEN_ON] = enabled }
+
+    suspend fun setCapoFret(fret: Int) = context.dataStore.edit {
+        it[Keys.CAPO_FRET] = Capo.clamp(fret)
+    }
 }

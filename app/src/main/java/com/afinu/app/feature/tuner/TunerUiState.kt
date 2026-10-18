@@ -2,6 +2,7 @@ package com.afinu.app.feature.tuner
 
 import com.afinu.app.core.audio.NoteReading
 import com.afinu.app.core.model.Instrument
+import com.afinu.app.core.model.InstrumentFamily
 import com.afinu.app.core.model.TuningPreset
 
 /**
@@ -14,7 +15,12 @@ import com.afinu.app.core.model.TuningPreset
 data class TunerUiState(
     /** `null` enquanto o ViewModel ainda não carregou as preferências. */
     val instrument: Instrument? = null,
+    /** Afinação a céu aberto, como está no catálogo. */
     val tuning: TuningPreset? = null,
+    /** Afinação com o capo aplicado — é esta que o medidor usa como alvo. */
+    val effectiveTuning: TuningPreset? = null,
+    /** Casa do capo em uso, de 0 (sem capo) a 12. */
+    val capoFret: Int = 0,
     val a4Hz: Float = 440f,
     val pitchOffsetCents: Float = 0f,
 
@@ -46,9 +52,21 @@ data class TunerUiState(
     val isListening: Boolean get() = micState == MicState.Listening
     val hasPermission: Boolean get() = micState !is MicState.NeedsPermission
 
-    /** Modo cromático: mostra todas as 12 notas em vez de só as cordas. */
+    /** O capo está em uso? Muda o que o cabeçalho e a tela de ajustes mostram. */
+    val hasCapo: Boolean get() = capoFret != 0
+
+    /** Rótulo do cabeçalho: afinação com o capo já embutido. */
+    val tuningLabel: String?
+        get() = effectiveTuning?.labelWithCapo(capoFret) ?: tuning?.label
+
+    /**
+     * Modo cromático: mostra todas as 12 notas em vez de só as cordas.
+     *
+     * Só faz sentido para instrumentos sem afinação fixa; um violão nunca entra
+     * em cromático, mesmo que o usuário toque uma nota fora das cordas.
+     */
     val isChromatic: Boolean
-        get() = instrument?.family == com.afinu.app.core.model.InstrumentFamily.FREEFORM
+        get() = instrument?.family == InstrumentFamily.FREEFORM
 }
 
 sealed interface MicState {

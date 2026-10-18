@@ -28,6 +28,59 @@
     <string name="chords">Acordes</string>
     <string name="settings">Ajustes</string>
 
+    <!-- Abas -->
+    <string name="tab_tuner">Afinador</string>
+    <string name="tab_metronome">Metrônomo</string>
+    <string name="tab_notes">Notas</string>
+    <string name="tab_chords">Acordes</string>
+    <string name="tab_settings">Ajustes</string>
+
+    <!-- Ajustes: seções -->
+    <string name="reference">Referência</string>
+    <string name="feedback">Retorno</string>
+    <string name="favorites">Favoritos</string>
+    <string name="about">Sobre</string>
+
+    <string name="capo">Capo</string>
+    <string name="no_capo">Sem</string>
+    <string name="capo_explainer">O capo transpõe todas as cordas na mesma quantidade. O afinador passa a mirar a nota que você realmente ouve.</string>
+    <string name="capo_effect">Sem capo: %1$s. Com o capo atual: %2$s.</string>
+
+    <string name="no_tuning_for_freeform">Este instrumento não tem afinação fixa. O app detecta qualquer nota automaticamente.</string>
+
+    <string name="reference_a4_value">A4 de referência: %1$d Hz</string>
+    <string name="a4_reference_value">Ajustado para %1$d Hz</string>
+    <string name="pitch_offset">Ajuste fino</string>
+    <string name="pitch_offset_reset">Zerar ajuste fino</string>
+
+    <string name="save_current_as_favorite">Salvar afinação atual</string>
+    <string name="save_favorite_title">Salvar favorito</string>
+    <string name="favorite_name">Nome</string>
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Apagar</string>
+    <string name="close">Fechar</string>
+    <string name="copy">Copiar</string>
+    <string name="import_action">Importar</string>
+
+    <string name="export_favorites">Exportar</string>
+    <string name="import_favorites">Importar</string>
+    <string name="export_explainer">Copie este texto para levar as afinações para outro aparelho.</string>
+    <string name="paste_json">Cole aqui o texto exportado</string>
+    <string name="import_success">%1$d afinações importadas</string>
+    <string name="import_failure">Não foi possível ler esse texto</string>
+
+    <string name="no_favorites">Nenhum favorito ainda. Salve a afinação que você usa no show para achar rápido depois.</string>
+    <string name="favorite_stale">Instrumento ou afinação não existe mais nesta versão</string>
+    <string name="delete_favorite_title">Apagar favorito?</string>
+    <string name="delete_favorite_body">Essa ação não pode ser desfeita.</string>
+
+    <string name="version">Versão %1$s</string>
+    <string name="privacy_short">Funciona 100%% offline. Nenhuma permissão de internet, nenhum dado coletado, nada gravado.</string>
+
+    <string name="metronome_coming_soon">O metrônomo usa agendamento por amostras de áudio para não sair do tempo — isso está sendo implementado.</string>
+    <string name="chords_coming_soon">Os diagramas respeitam sua afinação e seu capo. Em breve.</string>
+
     <string name="instrument_violao">Violão</string>
     <string name="instrument_guitarra7">Guitarra 7 cordas</string>
     <string name="instrument_guitarra8">Guitarra 8 cordas</string>
@@ -64,4 +117,5 @@
     <string name="instrument_piano">Piano / Teclado</string>
     <string name="instrument_acordeao">Acordeão</string>
     <string name="instrument_bateria">Bateria / Percussão</string>
+    <string name="capo_fret">Capo %1$d</string>
 </resources>
