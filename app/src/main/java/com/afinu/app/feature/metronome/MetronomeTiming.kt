@@ -112,11 +112,22 @@ object MetronomeTiming {
     /**
      * A primeira subdivisão de cada tempo leva acento.
      *
-     * O critério é `índice % subdivisõesPorTempo == 0` e **não** "a cada 4
-     * cliques". Em 7/8 com subdivisão, contar cliques_erraria o compasso.
+     * O critério tem DUAS condições, e faltar a primeira é um erro sutil:
+     *
+     * 1. a subdivisão tem de ser a primeira do tempo — `localIndexInBar %
+     *    subdivisoesPorTempo == 0`. Sem isso, com subdivisão 2 as colcheias
+     *    levariam acento junto com as semínimas;
+     * 2. o tempo só é acentuado a cada [MetronomeConfig.accentEvery] tempos.
+     *    Com o valor padrão 1, todo tempo é acentuado.
+     *
+     * O critério é o do **tempo**, não "a cada 4 cliques": em 7/8 com subdivisão,
+     * contar cliques erraria o compasso.
      */
-    fun isAccent(subdivisionCounter: Long, config: MetronomeConfig): Boolean =
-        localBeatInBar(subdivisionCounter, config) % config.accentEvery == 0
+    fun isAccent(subdivisionCounter: Long, config: MetronomeConfig): Boolean {
+        val indice = localIndexInBar(subdivisionCounter, config)
+        if (indice % config.subdivisionsPerBeat != 0) return false
+        return localBeatInBar(subdivisionCounter, config) % config.accentEvery == 0
+    }
 
     /** Amostras por tempo exatas, sem arredondar. Base de todo o cálculo. */
     fun exactFramesPerBeat(bpm: Float, sampleRate: Int): Double =

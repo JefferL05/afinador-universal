@@ -73,7 +73,12 @@ class InstrumentCatalogTest {
     @Test
     fun `ukulele tem quatro cordas`() {
         assertEquals(4, InstrumentCatalog.ukulele.defaultTuning.stringCount)
-        assertEquals(listOf(67, 60, 64, 69), InstrumentCatalog.ukulele.defaultTuning.midiNotes.sorted())
+        // Do grave para o agudo: Dó4, Mi4, Sol4, Lá4. A afinação Sol-Dó-Mi-Lá é
+        // a ordem em que o acorde é tocado, não a ordem das cordas.
+        assertEquals(
+            listOf(60, 64, 67, 69),
+            InstrumentCatalog.ukulele.defaultTuning.midiNotes,
+        )
     }
 
     @Test
@@ -130,7 +135,9 @@ class InstrumentCatalogTest {
     fun `guitarra de oito cordas alcanca Fsharp1`() {
         val maisGrave = InstrumentCatalog.guitarra8.defaultTuning.midiNotes.min()
         assertEquals(30, maisGrave)
-        assertEquals(61.7f, MusicTheory.frequencyOf(maisGrave, 440f), 0.5f)
+        // Fá sustenido 1 é MIDI 30, que vale 46,25 Hz a 440 de referência.
+        // (61,7 Hz é o Si1, MIDI 35 — a segunda corda, não a mais grave.)
+        assertEquals(46.25f, MusicTheory.frequencyOf(maisGrave, 440f), 0.5f)
     }
 
     @Test

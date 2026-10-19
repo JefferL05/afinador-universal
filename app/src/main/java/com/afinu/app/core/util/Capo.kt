@@ -41,9 +41,21 @@ object Capo {
 
     /**
      * Afinação efetiva com o capo aplicado. Casa 0 devolve a afinação original.
+     *
+     * Estrita de propósito: uma casa fora de [MIN_FRET]..[MAX_FRET] é sempre um
+     * erro de origem — um JSON importado com garbage, não uma escolha do
+     * usuário — e convertê-la em silêncio com [clamp] faria o app afinar para
+     * o alvo errado sem avisar. Quem precisa sobreviver ao dado ruim usa
+     * [effectiveOrUnshifted].
+     *
+     * @throws IllegalArgumentException se a casa estiver fora da faixa.
      */
-    fun effective(tuning: TuningPreset, capoFret: Int): TuningPreset =
-        if (capoFret == NONE) tuning else tuning.shifted(clamp(capoFret))
+    fun effective(tuning: TuningPreset, capoFret: Int): TuningPreset {
+        require(capoFret in MIN_FRET..MAX_FRET) {
+            "Casa de capo $capoFret fora da faixa $MIN_FRET..$MAX_FRET"
+        }
+        return if (capoFret == NONE) tuning else tuning.shifted(capoFret)
+    }
 
     /**
      * Mesma coisa, porém nunca lança: se a casa for absurda para o instrumento,

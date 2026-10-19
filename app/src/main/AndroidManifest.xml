@@ -1,8 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- Única permissão do app. Sem INTERNET: nada de áudio sai do aparelho. -->
+    <!--
+      Duas permissões, e só duas. Sem INTERNET: nada de áudio sai do aparelho.
+
+      VIBRATE é normal — não aparece na tela de permissões do Android e o
+      usuário não pode negá-la. Sem ela declarada, `Vibrator.vibrate()` lança
+      SecurityException e a confirmação tátil do afinador simplesmente nunca
+      acontece, sem nenhuma mensagem visível.
+    -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.VIBRATE" />
 
     <!-- O afinador roda bem em celular; a textura em Tablet é opcional. -->
     <uses-feature

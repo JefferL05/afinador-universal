@@ -175,19 +175,25 @@ class TunerViewModel @Inject constructor(
 
         audioJob?.cancel()
         audioJob = viewModelScope.launch(Dispatchers.IO) {
+            // `continue` dentro de `run { }` e um recurso experimental do
+            // Kotlin. Um `if` explicito diz a mesma coisa e compila em qualquer
+            // versao.
             while (currentCoroutineContext().isActive) {
-                val frame = audioCapture.readFrame() ?: run {
+                val frame = audioCapture.readFrame()
+                if (frame == null) {
                     if (!audioCapture.isRunning) {
                         withContext(Dispatchers.Main) {
                             _uiState.update {
                                 it.copy(micState = MicState.Failed("Microfone interrompido"))
                             }
                         }
-                        return@launch
+                        break
                     }
-                    continue
+                    // `readFrame` devolve nulo quando o quadro ainda nao chegou.
+                    // O microfone continua nosso: tenta de novo em vez de sair.
+                } else {
+                    processFrame(frame)
                 }
-                processFrame(frame)
             }
         }
     }
@@ -248,9 +254,11 @@ class TunerViewModel @Inject constructor(
         }
 
         val guided = _uiState.value.guidedStringIndex
+        // `shouldAdvanceGuided` so devolve true quando `guided` nao e nulo,
+        // mas o compilador nao sabe disso. O Elvis resolve sem `!!`.
         val advanced = if (TunerLogic.shouldAdvanceGuided(guided, stringIndex, inTune)) {
-            val next = guided + 1
-            if (next < currentEffectiveTuning.midiNotes.size) next else null
+            val proxima = (guided ?: 0) + 1
+            if (proxima < currentEffectiveTuning.midiNotes.size) proxima else null
         } else {
             guided
         }

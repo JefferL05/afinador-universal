@@ -59,9 +59,10 @@ class CapoTest {
 
     @Test
     fun `ukulele com capo na segunda continua ukulele`() {
-        val ukulele = TuningPreset("gcea", "Padrão", listOf(67, 60, 64, 69))
+        // Cords do grave para o agudo: Dó4, Mi4, Sol4, Lá4.
+        val ukulele = TuningPreset("gcea", "Padrão", listOf(60, 64, 67, 69))
         val comCapo = Capo.effective(ukulele, 2)
-        assertEquals(listOf(69, 62, 66, 71), comCapo.midiNotes)
+        assertEquals(listOf(62, 66, 69, 71), comCapo.midiNotes)
         // ukulele é A4: A + 2 semitons = B
         assertEquals("B4", MusicTheory.labelOf(comCapo.midiNotes.max()))
     }
@@ -77,8 +78,9 @@ class CapoTest {
 
     @Test
     fun `transposicao absurda e rejeitada em vez de quebrar a tela`() {
-        // O setters de ajustes nunca deixa passar, mas um import de JSON pode.
-        val ukulele = TuningPreset("gcea", "Padrão", listOf(67, 60, 64, 69))
+        // O setter de ajustes nunca deixa passar, mas um import de JSON pode.
+        // A API estrita avisa; a tolerante, abaixo, é quem não quebra a tela.
+        val ukulele = TuningPreset("gcea", "Padrão", listOf(60, 64, 67, 69))
         var lancou = false
         try {
             Capo.effective(ukulele, 24)
@@ -90,14 +92,20 @@ class CapoTest {
 
     @Test
     fun `versao tolerante devolve a afinacao original`() {
-        val ukulele = TuningPreset("gcea", "Padrão", listOf(67, 60, 64, 69))
+        val ukulele = TuningPreset("gcea", "Padrão", listOf(60, 64, 67, 69))
         assertEquals(ukulele, Capo.effectiveOrUnshifted(ukulele, 24))
     }
 
     @Test
     fun `nota soada fica dentro da faixa mesmo com entrada absurda`() {
+        // Casa 12 sobre a corda mais aguda do violão (E4 = 64) dá 76, que cabe.
+        // Para estourar o topo é preciso um capo absurdo, que [clamp] corta.
         assertEquals(127, Capo.soundedNote(120, 12))
-        assertEquals(0, Capo.soundedNote(0, 12))
+        // MIDI 0 com capo na 12 soa MIDI 12: o capo encurta o vibrador, ele não
+        // empurra a nota para baixo.
+        assertEquals(12, Capo.soundedNote(0, 12))
+        assertEquals(12, Capo.soundedNote(0, 99))
+        assertEquals(64, Capo.soundedNote(64, 0))
     }
 
     @Test

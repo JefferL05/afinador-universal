@@ -40,6 +40,9 @@ object Fretboard {
 
     /** Nota de uma casa do braço. Fora de faixa devolve null em vez de estourar. */
     fun midiAt(tuning: TuningPreset, stringIndex: Int, fret: Int): Int? {
+        // Casa negativa não existe. Sem esta guarda, `E4 + (-3)` voltaria 61 e
+        // o chamador receberia uma nota válida onde queria um erro.
+        if (fret < 0) return null
         val aberta = tuning.midiNotes.getOrNull(stringIndex) ?: return null
         val nota = aberta + fret
         return if (nota in 0..127) nota else null
@@ -114,7 +117,12 @@ object Fretboard {
         tuning: TuningPreset,
         targetMidi: Int,
         toFret: Int = DEFAULT_MAX_FRET,
-    ): FretPosition? = positionsForNote(tuning, targetMidi, 0, toFret).firstOrNull()
+    ): FretPosition? = positionsForNote(tuning, targetMidi, 0, toFret)
+        // Ordenar por (corda, casa) e pegar o primeiro devolveria sempre a
+        // corda mais grave — e o G3 do violão, por exemplo, sairia na casa 15.
+        // A casa é o critério; a corda mais grave desempata, porque é onde se
+        // tira o tom de referência.
+        .minWithOrNull(compareBy({ it.fret }, { it.stringIndex }))
 
     /**
      * Intervalos de semitons entre duas posições.
@@ -127,18 +135,23 @@ object Fretboard {
 
     /** Converte "C", "F#", "Bb" em semitons a partir de C. Null se inválido. */
     fun semitonesFromName(name: String): Int? {
-        val limpo = name.trim().uppercase().replace("♯", "#").replace("♭", "B")
-        if (limpo.length < 1 || limpo.length > 2) return null
-        val letra = limpo[0]
-        val base = when (letra) {
+        // A letra é maiúscula, mas o sinal não: "Bb" e "B" precisam sair
+        // results diferentes, e um `uppercase()` na string inteira apagaria essa
+        // diferença — "Bb" viraria "BB". Por isso a letra é normalizada sozinha
+        // e o segundo caractere é lido no original.
+        val bruto = name.trim()
+        if (bruto.isEmpty() || bruto.length > 2) return null
+
+        val base = when (bruto[0].uppercaseChar()) {
             'C' -> 0; 'D' -> 2; 'E' -> 4; 'F' -> 5
             'G' -> 7; 'A' -> 9; 'B' -> 11
             else -> return null
         }
-        if (limpo.length == 1) return base
-        return when (limpo[1]) {
-            '#' -> (base + 1) % 12
-            'B' -> (base + 11) % 12
+        if (bruto.length == 1) return base
+
+        return when (bruto[1]) {
+            '#', '♯' -> (base + 1) % 12
+            'b', '♭' -> (base + 11) % 12
             else -> null
         }
     }

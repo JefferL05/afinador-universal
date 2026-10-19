@@ -37,7 +37,8 @@ class MusicTheoryTest {
 
     @Test
     fun `intervalos de semitons`() {
-        // Quinta justa do violão (E2 -> A2).
+        // Quarta justa do violão (E2 -> A2). 5 semitons, não 7: de E até A são
+        // duas casas de meio tom a mais que de C até F.
         assertEquals(5, MusicTheory.semitonesBetween(
             MusicTheory.frequencyOf(40), MusicTheory.frequencyOf(45)
         ))
@@ -53,9 +54,10 @@ class MusicTheoryTest {
         assertEquals(12, MusicTheory.semitonesBetween(
             MusicTheory.frequencyOf(52), MusicTheory.frequencyOf(64)
         ))
-        // Quinta do baixo (E1 -> A1) é 7 semitons, não 5.
+        // Quinta justa do baixo: E1 -> B1, 7 semitons. (E1 -> A1 seria uma
+        // quarta, e foi por ler A1 como B1 que este teste chegou a esperar 7.)
         assertEquals(7, MusicTheory.semitonesBetween(
-            MusicTheory.frequencyOf(28), MusicTheory.frequencyOf(33)
+            MusicTheory.frequencyOf(28), MusicTheory.frequencyOf(35)
         ))
     }
 
@@ -69,14 +71,19 @@ class MusicTheoryTest {
 
     @Test
     fun `A4 de referencia desloca toda a tabela`() {
-        // Com A4 = 432, o som de 440 Hz passa a ser um si sustenido acima.
-        assertEquals(70, MusicTheory.nearestMidi(440f, 432f))
+        // Com A4 = 432, os 440 Hz do padrão ficam 31,6 cents acima do A4. Isso
+        // é menos da metade de um semitone, então a nota continua sendo A4 —
+        // virar "si sustenido" exigiria passar de 50 cents, ou seja, uns 451 Hz.
+        assertEquals(69, MusicTheory.nearestMidi(440f, 432f))
         assertEquals(69, MusicTheory.nearestMidi(432f, 432f))
-        // E2 com referência 432 deve ficar ~7 cents abaixo do valor padrão.
+        // Acima da metade do semitone, sim: 452 Hz com A4 = 432 é Bb4.
+        assertEquals(70, MusicTheory.nearestMidi(452f, 432f))
+        // Baixar a referencia de 440 para 432 baixa TODAS as notas na mesma
+        // proporcao: 1200*log2(432/440) = -31,77 cents, para qualquer nota.
         val erro = MusicTheory.centsBetween(
             MusicTheory.frequencyOf(40, 432f), MusicTheory.frequencyOf(40, 440f)
         )
-        assertTrue("desvio de $erro cents", erro < 0f && erro > -10f)
+        assertEquals(-31.77f, erro, 0.05f)
     }
 
     @Test
@@ -84,7 +91,10 @@ class MusicTheoryTest {
         assertEquals("C4", MusicTheory.labelOf(60))
         assertEquals("A4", MusicTheory.labelOf(69))
         assertEquals("C#3", MusicTheory.labelOf(49))
-        assertEquals("G0", MusicTheory.labelOf(31))
+        // MIDI 12 é o C0; o Sol logo acima (19) é G0. MIDI 31 é G1 — a conta
+        // é midi/12 - 1, e 31/12 arredonda para 2.
+        assertEquals("G0", MusicTheory.labelOf(19))
+        assertEquals("G1", MusicTheory.labelOf(31))
         assertEquals("G9", MusicTheory.labelOf(127))
     }
 

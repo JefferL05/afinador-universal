@@ -65,9 +65,13 @@ class NoteMapperTest {
 
     @Test
     fun `mesmo som lido como nota diferente conforme a referencia`() {
-        // 440 Hz é A4 com referência 440 e sí-la bemol com referência 432.
+        // 440 Hz é A4 nas duas referências: com A4 = 432 ele fica 31,6 cents
+        // acima, e meia nota é 50 cents, então a letra não muda.
         assertEquals(69, NoteMapper.map(440f, 440f)!!.midi)
-        assertEquals(70, NoteMapper.map(440f, 432f)!!.midi)
+        assertEquals(69, NoteMapper.map(440f, 432f)!!.midi)
+        // Para a leitura virar Bb4, o tom precisa passar da metade do semitão:
+        // 452 Hz com referência 432 são 76,8 cents acima do A4.
+        assertEquals(70, NoteMapper.map(452f, 432f)!!.midi)
     }
 
     @Test

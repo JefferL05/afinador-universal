@@ -36,7 +36,7 @@ class FavoritesCodecTest {
 
         assertEquals(originais.size, lidos.items.size)
         lidos.items.forEachIndexed { i, lido ->
-            assertEquals(originals[i], lido)
+            assertEquals(originais[i], lido)
         }
     }
 

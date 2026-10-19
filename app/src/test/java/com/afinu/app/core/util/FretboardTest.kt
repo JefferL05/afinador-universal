@@ -138,9 +138,10 @@ class FretboardTest {
 
     @Test
     fun `drop D move a posicao de D3 na 6a corda`() {
-        // Padrão: E2 + 10 = D3. Drop D: D2 + 12 = D3.
-        assertEquals(10, Fretboard.positionsForNote(violao, 50).first { it.stringIndex == 5 }.fret)
-        assertEquals(12, Fretboard.positionsForNote(dropD, 50).first { it.stringIndex == 5 }.fret)
+        // Padrão: E2 + 10 = D3. Drop D: D2 + 12 = D3. A 6ª corda é E4 (64) e
+        // está acima de D3 — quem sobe até lá é a 1ª corda.
+        assertEquals(10, Fretboard.positionsForNote(violao, 50).first { it.stringIndex == 0 }.fret)
+        assertEquals(12, Fretboard.positionsForNote(dropD, 50).first { it.stringIndex == 0 }.fret)
     }
 
     @Test
@@ -189,7 +190,9 @@ class FretboardTest {
         assertEquals(4, Fretboard.semitonesFromName("E"))
         assertEquals(7, Fretboard.semitonesFromName("G"))
         assertEquals(1, Fretboard.semitonesFromName("C#"))
-        assertEquals(11, Fretboard.semitonesFromName("B#"))
+        assertEquals(11, Fretboard.semitonesFromName("B"))
+        // B# é o mesmo som que o Dó: o semitonal de B# é 0, não 11.
+        assertEquals(0, Fretboard.semitonesFromName("B#"))
         assertEquals(10, Fretboard.semitonesFromName("Bb"))
         assertEquals(6, Fretboard.semitonesFromName("F#"))
     }
@@ -198,7 +201,9 @@ class FretboardTest {
     fun `nomes minusculos e com simbolos unicode`() {
         assertEquals(1, Fretboard.semitonesFromName("c#"))
         assertEquals(6, Fretboard.semitonesFromName("F♯"))
-        assertEquals(10, Fretboard.semitonesFromName("A♭"))
+        // Lá é a 9ª classe (A). O bemol desce um semitom: 8. Confundir o
+        // símbolo ♭ com a letra B faria "A♭" virar um acorde de Si.
+        assertEquals(8, Fretboard.semitonesFromName("A♭"))
     }
 
     @Test

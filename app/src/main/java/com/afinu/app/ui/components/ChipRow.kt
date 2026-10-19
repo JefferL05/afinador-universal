@@ -63,11 +63,19 @@ fun <T> ChipRow(
  * origem, que costuma ser um catálogo compartilhado e imutável.
  */
 fun <T> List<T>.movingSelectedToFront(selected: T): List<T> {
-    val primeiro = firstOrNull { it == selected } ?: return this
-    if (first() == primeiro) return this
-    return buildList(size) {
-        add(primeiro)
-        forEach { if (it != primeiro) add(it) }
+    // `this` dentro de `buildList` é a lista nova, não a de origem — por isso a
+    // origem fica num nome próprio antes de abrir o construtor.
+    val lista = this
+    val indice = lista.indexOfFirst { it == selected }
+    // -1 = ausente, 0 = já no início: nos dois casos devolve a própria
+    // instância, sem gastar uma cópia.
+    if (indice <= 0) return lista
+
+    // Move pelo ÍNDICE, não por igualdade: se o item se repete na lista, só a
+    // ocorrência escolhida sai do lugar e as outras ficam onde estavam.
+    return buildList(lista.size) {
+        add(lista[indice])
+        for (i in lista.indices) if (i != indice) add(lista[i])
     }
 }
 

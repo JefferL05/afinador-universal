@@ -59,6 +59,12 @@ fun MetronomeScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // `stringResource` é @Composable e não pode ser chamado de dentro de um
+    // lambda de semântica. Por isso o rótulo é resolvido antes.
+    val rotuloBotao = stringResource(
+        if (state.isRunning) R.string.pause else R.string.start
+    )
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -99,9 +105,7 @@ fun MetronomeScreen(
             modifier = Modifier
                 .size(88.dp)
                 .clearAndSetSemantics {
-                    contentDescription = stringResource(
-                        if (state.isRunning) R.string.pause else R.string.start
-                    )
+                    contentDescription = rotuloBotao
                 },
         ) {
             Icon(
@@ -147,12 +151,16 @@ fun MetronomeScreen(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
+        // `ChipRow` compara `selected` com cada item da lista, então os dois
+        // precisam ser o MESMO tipo: aqui o item é o número de subdivisões, e
+        // o texto vive na lista paralela. Passar só o número e um par separado
+        // desalinharia a comparação.
         ChipRow(
             items = SUBDIVISIONS,
             selected = state.config.subdivisionsPerBeat,
-            labelOf = { it.second },
-            descriptionOf = { it.second },
-            onSelect = { viewModel.setSubdivisions(it.first) },
+            labelOf = { sub -> SUBDIVISION_LABELS[SUBDIVISIONS.indexOf(sub)] },
+            descriptionOf = { sub -> SUBDIVISION_LABELS[SUBDIVISIONS.indexOf(sub)] },
+            onSelect = { sub -> viewModel.setSubdivisions(sub) },
         )
 
         Spacer(Modifier.height(20.dp))
@@ -220,8 +228,12 @@ private fun PulseIndicator(
     }
 }
 
-private val SUBDIVISIONS = listOf(
-    1 to "Semínimas",
-    2 to "Colcheias",
-    4 to "Semicolcheias",
-)
+private val SUBDIVISIONS = listOf(1, 2, 4)
+
+/**
+ * Rótulos de cada subdivisão, no mesmo índice de [SUBDIVISIONS].
+ *
+ * Ficam aqui, e não em `stringResource`, porque o `ChipRow` precisa de uma lista
+ * estável para comparar com `selected`.
+ */
+private val SUBDIVISION_LABELS = listOf("Semínimas", "Colcheias", "Semicolcheias")

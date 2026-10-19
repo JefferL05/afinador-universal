@@ -103,7 +103,9 @@ class IdeaRecorder @Inject constructor(
             rec.setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
             rec.setAudioSamplingRate(SAMPLE_RATE)
             rec.setAudioEncodingBitRate(BIT_RATE)
-            rec.setMaxDuration(MAX_DURATION_MS)
+            // setMaxDuration recebe Int, mas o limite é um Long para casar com o resto da
+            // contagem de tempo. A conversão é segura: 10 min cabe folgadamente.
+            rec.setMaxDuration(MAX_DURATION_MS.toInt())
             rec.setOutputFile(arquivo.absolutePath)
             rec.prepare()
             rec.start()
@@ -132,7 +134,7 @@ class IdeaRecorder @Inject constructor(
      */
     fun stop(): File? {
         val rec = recorder ?: return null
-        val arquivo = currentFile
+        var arquivo = currentFile
 
         try {
             rec.stop()

@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.stateDescription
 import com.afinu.app.core.audio.NoteReading
 import com.afinu.app.core.util.MusicTheory
 
@@ -72,7 +73,7 @@ fun InTuneAnnouncer(
 fun Modifier.labelAndState(label: String, value: String): Modifier =
     semantics {
         contentDescription = label
-        androidx.compose.ui.semantics.stateDescription = value
+        stateDescription = value
     }
 
 /**

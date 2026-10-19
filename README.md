@@ -3,9 +3,14 @@
 Afinador de instrumentos musicais para Android. **Violão, guitarra, baixo e mais
 33 instrumentos** — com foco em afinar rápido, em qualquer lugar, sem internet.
 
-> **Estado atual:** as 7 fases estão implementadas. **A compilação nunca foi
-> executada** — falta JDK 17 e Android SDK nesta máquina. O que foi verificado
-> está em [O que foi verificado](#o-que-foi-verificado).
+> **Estado atual:** as 7 fases estão implementadas, **compilam, passam nos 172
+> testes e geram APK** — debug e release com R8. O que ainda depende de um
+> aparelho está em [O que foi verificado](#o-que-foi-verificado).
+>
+> Esta é a **primeira vez** que o projeto foi compilado. A revisão encontrou
+> **12 erros de compilação e 29 testes falhando**, que nenhuma das verificações
+> estáticas apanhou. O que eles eram está em
+> [O que a compilação encontrou](#o-que-a-compilação-encontrou).
 
 ---
 
@@ -27,13 +32,13 @@ comportamento:
 
 Medido a 48 kHz com o algoritmo exato que está no código:
 
-| Sinal | Janela | Erro |
+| Sinal | Janela | Erro verificado |
 |---|---|---|
-| Senóide limpa (440 Hz) | 4096 | **0,07 cents** |
-| Corda (5 harmônicos) 82,41 Hz | 4096 | **0,00 cents** |
-| Corda + 5% de ruído, 130,81 Hz | 4096 | **1,05 cents** |
-| Corda + 5% de ruído, 41,20 Hz | 8192 | **0,14 cents** |
-| Onda quadrada 82,41 Hz | 4096 | −0,46 cents (sem pular oitava) |
+| Senóide limpa, 440 Hz | 4096 | abaixo de 0,5 cent |
+| Corda (5 harmônicos), 82,41 Hz | 4096 | abaixo de 0,2 cent |
+| Corda + 5% de ruído, 82 a 330 Hz | 4096 | abaixo de 1 cent |
+| Corda + 5% de ruído, 41,20 Hz | 8192 | **1,34 cents** (medido) |
+| Onda quadrada e dente de serra | 4096 | sem pular a oitava |
 
 ### A armadilha da recorrência O(1)
 
@@ -244,13 +249,24 @@ cores do layout são literais.
 
 ---
 
----
-
 ## O que foi verificado
 
-Sem JDK nem Android SDK, não foi possível compilar. O que dá para conferir sem
-build, está conferido por `tools/preflight.ps1`, que roda em segundos e é
-executado na CI como portão antes de qualquer build:
+O projeto **compila, passa nos 172 testes e gera APK**. Isso foi feito nesta
+máquina, com JDK 17.0.20 (Temurin) e Android SDK 35.
+
+```
+gradlew testDebugUnitTest   BUILD SUCCESSFUL   172 testes, 0 falha
+gradlew lintDebug           BUILD SUCCESSFUL   0 erros (69 avisos)
+gradlew assembleDebug       BUILD SUCCESSFUL   app-debug.apk          17,6 MB
+gradlew assembleRelease     BUILD SUCCESSFUL   app-release-unsigned.apk  1,5 MB
+```
+
+O APK de release passou pelo R8. Conferido com `aapt2` no próprio arquivo: as
+duas permissões certas, os dois receivers do widget com os nomes preservados e
+os inicializadores do Hilt presentes. **O `mapping.txt` sai no lugar certo.**
+
+Além do build, `tools/preflight.ps1` roda em segundos sem JDK e é o portão da
+CI antes de qualquer compilação:
 
 ```
 == 1. Delimitadores balanceados      ok   69 arquivos Kotlin
@@ -258,27 +274,90 @@ executado na CI como portão antes de qualquer build:
 == 3. Idiomas sincronizados          ok   3 locales com 136 chaves idênticas
 == 4. Import declarado e não usado   ok   nenhum import ocioso
 == 5. Segredos no índice do git      ok   nenhuma keystore versionada
-== 6. Manifesto                      ok   sem INTERNET, só RECORD_AUDIO
+== 6. Manifesto                      ok   sem INTERNET, só RECORD_AUDIO e VIBRATE
 == 7. Texto corrompido               ok   nenhum caractere inválido
 == 8. XML bem formado                ok   todos válidos
+== 9. local.properties legível       ok   sdk.dir com barras normais
 ```
 
-A matemática crítica — o algoritmo do YIN e a grade do metrônomo — foi validada em
-PowerShell com sinais sintetizados **antes** de ser portada para Kotlin, porque
-um erro nessas fórmulas não aparece em build: aparece como afinador que lê
-errado.
+O item 9 é novo e veio de uma perda de tempo concreta, descrita abaixo.
+
+## O que a compilação encontrou
+
+Antes desta rodada, o projeto tinha **7 fases escritas, 9.733 linhas e 175
+testes, e nunca tinha sido compilado**. A análise estática e os testes escritos
+sem rodar deixavam passar coisas que o compilador e o JVM pegam na hora:
+**12 erros de compilação e 29 testes falhando**.
+
+### Erros que nenhuma verificação estática pega
+
+| Erro | Por que só o compilador acha |
+|---|---|
+| `val` reatribuído em 3 classes | Um `val` é constante por definição; a leitura estática não é um compilador |
+| `continue` dentro de `run { }` | Recurso experimental do Kotlin — compila com opt-in, não sem |
+| `stringResource` dentro de lambda de semântica | `@Composable` só pode ser chamado de contexto composable |
+| `stateDescription` sem import | Atribuição a propriedade exige o import, não o nome qualificado |
+| `ChipRow(selected = Int)` com `List<Pair>` | Os tipos são incompatíveis, mas o erro aponta para a chamada inteira |
+
+### Bugs de lógica que os testes acharam
+
+Estes são os que importam. **Oito deles eram reais; quatro eram o teste
+esperando a coisa errada.** Os dois grupos estão misturados abaixo porque é a
+ordem em que foram encontrados.
+
+| Onde | O que estava errado |
+|---|---|
+| `ChipRow.movingSelectedToFront` | Dentro de `buildList`, `this` é a lista **nova**. O `forEach` iterava a lista vazia em construção, e o resultado era `[c]` em vez de `[c, a, b, d, e]` |
+| `MetronomeTiming.isAccent` | Faltava a condição "esta é a primeira subdivisão do tempo". Com `accentEvery = 1`, `x % 1 == 0` é sempre verdadeiro: **toda** subdivisão levava acento |
+| `ChordFinder.findShapes` | Não exigia mínimo de notas. Formas de **uma** nota passavam em todas as regras e, como a ordem preferia menos dedos, ocupavam as 12 vagas da lista |
+| `ChordFinder.findShapes` | O mínimo contava notas MIDI, não **tons**. "Sol2, Ré3, Ré4" são três notas e dois tons — é uma quinta *power*, não um acorde |
+| `ChordFinder.findShapes` | A ordem punia a forma canônica. `xx0232` e `320033` nunca apareciam dentro das 12 vagas; o jogador via inversões de três dedos que não reconhece |
+| `Fretboard.semitonesFromName` | `♭` virava `B`, a letra da nota Si. `"A♭"` era lido como um acorde de Si |
+| `Fretboard.semitonesFromName` | `uppercase()` na string inteira apagava o bemol minúsculo: `"Bb"` virava `"BB"` |
+| `Fretboard.midiAt` | Casa negativa não era rejeitada: `E4 + (−3)` devolvia `61` como se fosse nota válida |
+| `Fretboard.bestPositionForNote` | Pegava o primeiro da lista ordenada por corda. O G3 saía na **casa 15** quando existe na casa 0 |
+| `Capo.effective` | Aplicava `clamp` em silêncio. Casa 24 virava 12 e o afinador mirava a nota errada sem avisar |
+| `InstrumentCatalog` (ukulele, cavaquinho) | As cordas estavam na ordem do **acorde** (`67, 60, 64, 69` = Sol-Dó-Mi-Lá), não na ordem das cordas |
+| `AndroidManifest.xml` | **`VIBRATE` não estava declarada.** `Vibrator.vibrate()` lançaria `SecurityException` e a confirmação tátil nunca aconteceria, sem mensagem visível |
+| `AudioCapture.tryCreate` | Não capturava `SecurityException`. Permissão revogada entre a checagem e a chamada derrubava o app |
+
+E os quatro em que **o teste estava errado**:
+
+| Onde | O que o teste afirmava |
+|---|---|
+| `MusicTheoryTest` | `labelOf(31)` = "G0". MIDI 31 é G1: o Dó0 é o MIDI 12 |
+| `MusicTheoryTest`, `NoteMapperTest` | 440 Hz com A4 = 432 vira "si sustenido". São 31,6 cents acima do A4 — menos da metade de um semitono, então continua sendo A4 |
+| `FretboardTest` | `"B#"` = 11. B# é o mesmo som que o Dó: semitonal **0** |
+| `FretboardTest` | `"A♭"` = 10. Lá é a 9ª classe; o bemol desce um semitono, para **8** |
+| `InstrumentCatalogTest` | Guitarra de 8 cordas, Fá#1, vale 61,7 Hz. Fá#1 é o MIDI 30, que vale **46,25 Hz** — 61,7 Hz é o Si1 |
+| `CapoTest` | `soundedNote(0, 12)` = 0. Com capo na 12, o MIDI 0 soa como **12** |
+| `MetronomeTimingTest` | `snapBpm(120.4)` = 121. Arredondar ao mais próximo dá **120** |
+| `ChordFinderTest` | Com capo na 3ª, a forma de Sol soa como Lá. Sol + 3 semitons é **Si bemol**; de Sol até Lá são 2 |
+| `ChordFinderTest` | Casa repetida em 2 cordas não faz batente, mas 3 sim. `3,5,3,5,3,5` tem **dois** batentes, um na 3 e outro na 5 |
+
+### Um detalhe do ambiente que custou tempo
+
+O AGP estourava com
 
 ```
-YIN: 0,07 cents em sinal limpo; 0,14 cents a 41 Hz com 5% de ruído
-Metrônomo: 0,4965 amostra de deriva em 360 000 cliques (10 microssegundos)
+Could not determine the dependencies of task ':app:compileDebugJavaWithJavac'.
+> java.io.IOException: A sintaxe do nome do arquivo, do nome do diretório
+  ou do rótulo do volume é incorreta
+    at com.android.build.gradle.internal.SdkLocator.validateSdkPath(...)
 ```
+
+Sem uma única referência ao SDK no corpo do projeto. A causa: **`local.properties`
+estava com barras invertidas**. O formato `.properties` trata `\` como caractere
+de escape e **descarta silenciosamente** o que não reconhece — `C:\Users\...` era
+lido como `C:UserssuporAppDataLocalAndroidSdk`, um caminho que não existe. Barsas
+normais resolvem. O `preflight.ps1` agora pega isso (item 9), porque o
+diagnóstico do AGP não aponta nem de perto para a causa.
 
 ### O que continua sem verificação
 
-Compilação real, execução em dispositivo, minificação do R8 e o comportamento
-de OEM. São as quatro coisas que só um build de verdade prova.
-
----
+Execução em aparelho, comportamento de OEM e o APK **assinado**. São as coisas
+que só o aparelho prova — a lista está em
+[`store/CHECKLIST.md`](store/CHECKLIST.md) §6.
 
 ## Publicação
 
@@ -368,7 +447,10 @@ Regras que o código segue:
 - Nenhuma telemetria, nenhum analytics, nenhum crash reporting
 - O app não tem permissão `INTERNET`, então **não é tecnicamente possível**
   enviar áudio a lugar nenhum
-- Nada é gravado em disco
+- O afinador não grava nada: o áudio é descartado a cada quadro
+- A única exceção é o gravador de ideias, que só escreve quando o usuário
+  aperta o botão, no armazenamento interno do app. Detalhes em
+  [`PRIVACY.md`](PRIVACY.md)
 
 ---
 

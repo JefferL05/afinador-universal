@@ -38,8 +38,9 @@ class AudioCapture @Inject constructor() {
     }
 
     private var record: AudioRecord? = null
-    private val shortBuffer = ShortArray(0)
-    private val floatBuffer = FloatArray(0)
+    // Reatribuidos quando o tamanho do quadro muda (troca de instrumento).
+    private var shortBuffer: ShortArray = ShortArray(0)
+    private var floatBuffer: FloatArray = FloatArray(0)
 
     /** Fonte efetivamente usada, útil para diagnóstico em ajustes. */
     var activeSource: Int = -1
@@ -115,6 +116,14 @@ class AudioCapture @Inject constructor() {
             null
         } catch (e: IllegalArgumentException) {
             Log.w(TAG, "Parâmetros inválidos para a fonte de áudio $source", e)
+            null
+        } catch (e: SecurityException) {
+            // A permissão é concedida em tempo de execução. Se o usuário a
+            // revogar nas configurações entre a checagem e esta chamada — ou
+            // se a política do fabricante empurrar a decisão para cá — isto
+            // estoura. Sem esta captura o app fecha em vez de mostrar
+            // "microfone indisponível".
+            Log.w(TAG, "Sem permissão de gravação para a fonte $source", e)
             null
         }
     }

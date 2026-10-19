@@ -118,14 +118,23 @@ class ChordFinderTest {
     }
 
     @Test
-    fun `a forma mais simples e a de menos dedos`() {
-        val formas = ChordFinder.findShapes(violao, spec("Am"))
-        val dedos = formas.map { it.frets.count { f -> f != null } }
-        assertEquals(
-            "as formas deveriam vir da mais simples para a mais complexa: $formas",
-            dedos.sorted(),
-            dedos,
-        )
+    fun `a lista respeita a ordem documentada`() {
+        // A ordem e: fundamental embaixo, depois posicao no braco, depois
+        // quantas cordas soam, depois menos dedos. Quem procura o D menor
+        // quer o xx0232 e nao uma inversao de tres dedos numa casa mais alta.
+        val s = spec("Am")
+        val formas = ChordFinder.findShapes(violao, s)
+        val chaves = formas.map { forma ->
+            listOf(
+                if (forma.bassMidi % 12 != s.rootMidi % 12) 1 else 0,
+                forma.firstFret,
+                forma.frets.count { it == null },
+                forma.frets.count { it != null },
+            )
+        }
+        chaves.zipWithNext { anterior, atual ->
+            assertTrue("ordem quebrada entre $anterior e $atual", anterior.ateAnterior(atual))
+        }
     }
 
     @Test
@@ -141,18 +150,27 @@ class ChordFinderTest {
         }
     }
 
+    /** Ordem lexica: o primeiro elemento que difere decide. Empate e `<=`. */
+    private fun List<Int>.ateAnterior(outra: List<Int>): Boolean {
+        for (pos in indices) {
+            if (this[pos] != outra[pos]) return this[pos] < outra[pos]
+        }
+        return true
+    }
+
     // --- Qualidades diferentes -------------------------------------------------
 
     @Test
     fun `acorde menor tem a terceira abaixada`() {
         val am = ChordNames.parse("Am")!!
         val c = ChordNames.parse("C")!!
-        // Lá menor contém Sol (7), que é a terça de Lá e a quinta de Dó.
-        assertTrue(am.quality.contains(am.rootMidi, 67))
+        // Am = A, C, E. Contem C (a terceira) e E (a quinta); Sol nao entra.
         assertTrue(c.quality.contains(c.rootMidi, 67))
-        // Dó maior NÃO contém Mi (4), que é a terça de Lá menor.
-        assertTrue(!c.quality.contains(c.rootMidi, 64))
-        assertTrue(am.quality.contains(am.rootMidi, 64))
+        // C maior = C, E, G. Contem E, que e a terceira de C MAIOR. O que
+        // ele nao tem e G#, que seria a dominante de C.
+        assertTrue(!c.quality.contains(c.rootMidi, 68))
+        assertTrue(am.quality.contains(am.rootMidi, 60))
+        assertTrue(c.quality.contains(c.rootMidi, 64))
     }
 
     @Test
@@ -203,8 +221,8 @@ class ChordFinderTest {
             assertEquals("ukulele tem 4 cordas", 4, forma.frets.size)
             forma.notes.forEach { nota ->
                 assertTrue(
-                    cSpec.quality.contains(cSpec.rootMidi, nota),
                     "nota $nota não é do acorde C",
+                    cSpec.quality.contains(cSpec.rootMidi, nota),
                 )
             }
         }
@@ -224,21 +242,19 @@ class ChordFinderTest {
 
     @Test
     fun `com capo as formas acompanham a nota que se ouve`() {
-        // A 5ª casa de qualquer corda em padrão dá Sol. Com capo na 3ª, essa
-        // mesma forma soa como Lá. O algoritmo tem de devolver as formas de
-        // Lá, não as de Sol.
+        // Capo na 3 = +3 semitons. A forma de Sol (Sol, Si, Re) tocada com
+        // esse capo soa com 3 semitons a mais: Sib, Re, Fa. Isso e Si bemol
+        // maior, e nao La maior -- de Sol ate La sao 2 semitons.
         val comCapo = Capo.effective(violao, 3)
-        val formasPadrao = ChordFinder.findShapes(violao, spec("G"))
-        val formaG = formasPadrao.first()
+        val formaG = ChordFinder.findShapes(violao, spec("G")).first()
+        val formasComCapo = ChordFinder.findShapes(comCapo, spec("Bb"))
+        val formaBb = formasComCapo.firstOrNull { it.frets == formaG.frets }
 
-        val formasComCapo = ChordFinder.findShapes(comCapo, spec("A"))
-        val formaA = formasComCapo.firstOrNull { it.frets == formaG.frets }
-
-        assertNotNull("a mesma forma deveria soar como Lá com capo na 3ª", formaA)
+        assertNotNull("a mesma forma deveria soar como Si bemol com capo na 3", formaBb)
         assertEquals(
             "a forma tocada com capo soa 3 semitons acima",
             formaG.notes.map { it + 3 }.sorted(),
-            formaA!!.notes,
+            formaBb!!.notes,
         )
     }
 
@@ -286,10 +302,12 @@ class ChordFinderTest {
 
     @Test
     fun `três cordas na mesma casa contam como batente`() {
-        val comBatente = ChordShape("X", listOf(3, 3, 3, 5, 3, 1), emptyList(), 0, false)
-        assertTrue(comBatente.barres >= 1)
+        // Casa batida em 3 ou mais cordas e batente. Aqui sao duas: a 3 e a 5.
+        val comBatente = ChordShape("X", listOf(3, 3, 3, 5, 5, 5), emptyList(), 0, false)
+        assertEquals(2, comBatente.barres)
 
-        val semBatente = ChordShape("X", listOf(3, 5, 3, 5, 3, 5), emptyList(), 0, false)
+        // Casa repetida em 2 cordas nao faz batente.
+        val semBatente = ChordShape("X", listOf(3, 5, 3, 5, 4, 6), emptyList(), 0, false)
         assertEquals(0, semBatente.barres)
     }
 

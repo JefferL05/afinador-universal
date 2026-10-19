@@ -21,9 +21,12 @@
     4. Import não usado               — aviso, não erro
     5. Segredos no índice do git      — a keystore de release no repositório
                                        é irreversível
-    6. Manifesto sem INTERNET         — promessa de privacidade verificável
-    7. Dados corrompidos no código    — caracteres fora do alfabeto latino que
+    6. Manifesto sem INTERNET         - promessa de privacidade verificavel
+    7. Dados corrompidos no codigo    - caracteres fora do alfabeto latino
                                        quebram a compilação do arquivo
+    8. local.properties legivel      - barras invertidas viram um caminho
+                                        inexistente e o AGP acusa erro de
+                                        nome de arquivo em vez de SDK ausente
 
 .PARAMETER Root
     Raiz do projeto. Padrão: a pasta deste script, dois níveis acima.
@@ -199,12 +202,21 @@ $perms = @([regex]::Matches($semComentarios, 'uses-permission android:name="([\w
 if ($semComentarios -match 'android\.permission\.INTERNET') {
     Falha 'o manifesto declara INTERNET: o app nao envia nada para fora'
 } else { Ok 'sem permissao de INTERNET' }
-if ($perms -notcontains 'android.permission.RECORD_AUDIO') {
-    Falha 'falta a permissao RECORD_AUDIO'
+$esperadas = @(
+    'android.permission.RECORD_AUDIO',
+    # Normal: nao aparece na tela de permissao e o usuario nao pode negar.
+    # Sem ela, Vibrator.vibrate() lanca SecurityException e a confirmacao
+    # tatil do afinador nunca acontece, sem nenhuma mensagem visivel.
+    'android.permission.VIBRATE'
+)
+foreach ($e in $esperadas) {
+    if ($perms -notcontains $e) { Falha "falta a permissao $e" }
 }
-if ($perms.Count -gt 1) {
-    Aviso "permissoes alem de RECORD_AUDIO: $($perms -join ', ')"
-} else {
+$extras = @($perms | Where-Object { $esperadas -notcontains $_ })
+if ($extras.Count -gt 0) {
+    # Permissao inesperada e regressao de privacidade, nao aviso.
+    Falha "permissoes fora da lista esperada: $($extras -join ', ')"
+} elseif ($falhas -eq 0) {
     Ok "apenas $($perms -join ', ')"
 }
 
@@ -231,6 +243,34 @@ foreach ($f in Arquivos '*.xml') {
     catch { Falha "$($f.Name): $($_.Exception.Message)" }
 }
 if ($falhas -eq 0) { Ok 'todos os XML validos' }
+
+# ---------------------------------------------------------------------------
+Titulo '9. local.properties'
+
+# Esta verificacao veio de uma perda de tempo concreta. O formato .properties
+# trata '\' como caractere de escape e DESCARTA silenciosamente o que nao
+# reconhece: `sdk.dir=C:\Users\fulano` e lido como `C:Usersfulano`, que nao
+# existe. O AGP nao diz "SDK nao encontrado" -- ele estoura com
+# "IOException: A sintaxe do nome do arquivo... e incorreta", num frame do
+# SdkLocator, e nao em nenhum do projeto. Barsas normais resolvem.
+$lp = Join-Path $Root 'local.properties'
+if (-not (Test-Path $lp)) {
+    Aviso 'local.properties ausente: o AGP vai procurar o SDK em ANDROID_HOME'
+} else {
+    $linha = @(Get-Content $lp | Where-Object { $_ -match '^\s*sdk\.dir\s*=' })[0]
+    if (-not $linha) {
+        Aviso 'local.properties sem sdk.dir'
+    } else {
+        $valor = ($linha -split '=', 2)[1].Trim()
+        if ($valor.Contains('\')) {
+            Falha "sdk.dir com barras invertidas: o Java leria '$valor' sem as barras, um caminho inexistente"
+        } elseif (-not (Test-Path $valor)) {
+            Aviso "sdk.dir aponta para '$valor', que nao existe nesta maquina (esperado na CI)"
+        } else {
+            Ok "sdk.dir -> $valor"
+        }
+    }
+}
 
 # ---------------------------------------------------------------------------
 Write-Host ''

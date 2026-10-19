@@ -94,15 +94,22 @@ object InstrumentCatalog {
 
     // --- Outros instrumentos de cordas ----------------------------------------
 
+    /**
+     * Ukulele e cavaquinho.
+     *
+     * A afinação é Sol-Dó-Mi-Lá, e essa é a ordem em que o acorde é tocado — o
+     * que seria um erro de catálogo. A lista de um instrumento é a ordem das
+     * **cordas**, do grave para o agudo: Dó4, Mi4, Sol4, Lá4.
+     */
     val ukulele = strings(
         "ukulele", "Ukulele",
-        TuningPreset("gcea", "Padrão (Sol Dó Mi Lá)", listOf(67, 60, 64, 69)),
+        TuningPreset("gcea", "Padrão (Dó Mi Sol Lá)", listOf(60, 64, 67, 69)),
         TuningPreset("dgae", "Ré-mão (Ré Sol Si Mi)", listOf(62, 67, 71, 76)),
     )
 
     val cavaquinho = strings(
         "cavaquinho", "Cavaquinho",
-        TuningPreset("gcea", "Padrão", listOf(67, 60, 64, 69)),
+        TuningPreset("gcea", "Padrão", listOf(60, 64, 67, 69)),
         TuningPreset("dgae", "Ré-mão", listOf(62, 67, 71, 76)),
     )
 

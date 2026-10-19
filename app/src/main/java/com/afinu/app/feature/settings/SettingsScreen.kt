@@ -481,7 +481,15 @@ private fun ExportDialog(text: String, onDismiss: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(8.dp))
-            OutlinedTextField(value = text, readOnly = true, minLines = 4, maxLines = 10)
+            // readOnly sem onValueChange não compila: o parâmetro é obrigatório mesmo
+            // quando o campo não aceita edição.
+            OutlinedTextField(
+                value = text,
+                onValueChange = {},
+                readOnly = true,
+                minLines = 4,
+                maxLines = 10,
+            )
         },
         confirmButton = {
             TextButton(onClick = {

@@ -219,8 +219,8 @@ class MetronomeTimingTest {
         // Com 4/4 e acento a cada 2 tempos, o padrão se repete de 4 em 4
         // compassos. Aqui se confere que ele não "anda" ao longo do tempo.
         val config = MetronomeConfig(beatsPerBar = 4, subdivisionsPerBeat = 2, accentEvery = 2)
-        val acentuados = (0L until 64L).filter { MetronomeTiming.isAccent(it, config) }
-        // 16 compassos x 2 acentos
+        val acentuados = (0L until 128L).filter { MetronomeTiming.isAccent(it, config) }
+        // 16 compassos x 8 subdivisoes = 128 cliques, 2 acentos por compasso
         assertEquals(32, acentuados.size)
     }
 
@@ -237,8 +237,10 @@ class MetronomeTimingTest {
 
     @Test
     fun `bpm e arredondado para inteiro e limitado`() {
+        // Arredondamento é o mais próximo, não para cima: 120,4 fica em 120.
         assertEquals(120f, MetronomeTiming.snapBpm(119.6f))
-        assertEquals(121f, MetronomeTiming.snapBpm(120.4f))
+        assertEquals(120f, MetronomeTiming.snapBpm(120.4f))
+        assertEquals(121f, MetronomeTiming.snapBpm(120.6f))
         assertEquals(MetronomeConfig.MIN_BPM, MetronomeTiming.snapBpm(1f))
         assertEquals(MetronomeConfig.MAX_BPM, MetronomeTiming.snapBpm(9999f))
     }

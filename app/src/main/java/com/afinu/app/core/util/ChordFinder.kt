@@ -79,8 +79,19 @@ enum class ChordQuality(
 data class ChordSpec(
     val rootMidi: Int,
     val quality: ChordQuality,
+    /**
+     * A tônica como o usuário a escreveu, ex.: "Bb".
+     *
+     * Nulo quando o acorde nasceu de uma escolha na interface, e não de texto
+     * digitado — aí o rótulo sai do [rootMidi]. Guardar a grafia importa porque
+     * "Bb" e "A#" são o mesmo som, mas só uma delas é o nome que o músico usa;
+     * devolver sempre a versão com sustenido faz o app seeming errar o que o
+     * jogador digitou.
+     */
+    val rootLabel: String? = null,
 ) {
-    val rootName: String get() = MusicTheory.labelOf(rootMidi).dropLastWhile { it.isDigit() }
+    val rootName: String
+        get() = rootLabel ?: MusicTheory.labelOf(rootMidi).dropLastWhile { it.isDigit() }
 
     /** "C", "Am", "F#m7". */
     val name: String get() = rootName + quality.suffix
@@ -117,7 +128,7 @@ data class ChordShape(
         }
 
     /** A forma cabe na mão? */
-    val isPlayable: Boolean get() = span <= MAX_SPAN
+    val isPlayable: Boolean get() = span <= ChordFinder.MAX_SPAN
 }
 
 /**
@@ -150,6 +161,17 @@ object ChordFinder {
 
     /** Quantas formas devolver, no máximo, para a lista da tela. */
     const val MAX_RESULTS = 12
+
+    /**
+     * Menor número de **tons do acorde** que uma forma pode ter.
+     *
+     * Três é o piso de qualquer acorde triádico, e a contagem é por **classe de
+     * altura**, não por nota MIDI: uma forma que soa Sol2, Ré3 e Ré4 traz três
+     * notas e só dois tons, e é uma quinta POWER — não um acorde de Sol. Sem
+     * esta distinção a lista enche de formas que o jogador não reconhece e a
+     * forma aberta canônica nunca chega a aparecer dentro de [MAX_RESULTS].
+     */
+    const val MIN_DISTINCT_NOTES = 3
 
     /**
      * Encontra formas tocáveis de um acorde.
@@ -192,10 +214,25 @@ object ChordFinder {
             .distinctBy { it.frets }
             .sortedWith(
                 compareBy(
-                    { it.frets.count { f -> f != null } },       // menos dedos
-                    { it.span },                                 // pegada menor
-                    { it.firstFret },                            // mais perto do cravelha
-                    { it.barres },                               // sem batente
+                    // 1. Fundamental embaixo. Uma forma invertida é válida e às
+                    //    vezes é a melhor pegada, mas não é a primeira coisa que
+                    //    o jogador quer ver.
+                    { it.bassMidi % 12 != spec.rootMidi % 12 },
+                    // 2. Posição no braço: a mais perto do cravelha primeiro.
+                    { it.firstFret },
+                    // 3. Cordas que soam. A forma que o jogador reconhece é a
+                    //    que toca o instrumento inteiro — 320033 no Sol,
+                    //    x32010 no Dó, xx0232 no Ré. Sem este critério, meia
+                    //    dúzia de parciais de três dedos empurra a forma
+                    //    canônica para fora das [MAX_RESULTS] que a interface
+                    //    mostra, e a lista deixa de servir para quem está
+                    //    aprendendo o acorde.
+                    { it.frets.count { f -> f == null } },
+                    // 4. Desempate dentro do mesmo grupo: menos dedos, pegada
+                    //    menor, sem batente.
+                    { it.frets.count { f -> f != null } },
+                    { it.span },
+                    { it.barres },
                 )
             )
             .take(MAX_RESULTS)
@@ -233,6 +270,11 @@ object ChordFinder {
                 val distintas = notas.distinct().sorted()
                 if (distintas.any { !spec.quality.contains(spec.rootMidi, it) }) return
 
+                // E uma forma tem de soar um acorde, não uma nota só nem uma quinta
+                // power. Ver [MIN_DISTINCT_NOTES]: conta-se a classe de altura,
+                // senão "Sol2, Ré3, Ré4" passa com três notas e não é Sol.
+                if (notas.map { it % 12 }.distinct().size < MIN_DISTINCT_NOTES) return
+
                 saida += ChordShape(
                     name = spec.name,
                     frets = resultado.toList(),
@@ -268,7 +310,9 @@ object ChordFinder {
         semitones: Int,
         maxFret: Int = DEFAULT_MAX_FRET,
     ): ChordShape? {
-        val notasPorCorda = ArrayList<Int?>(shape.frets.size)
+        // Só entram notas reais: a casa nula (corda mudada) nunca chega aqui porque
+        // o `?.let` a descarta. Por isso a lista é de Int, e não de Int?.
+        val notasPorCorda = ArrayList<Int>(shape.frets.size)
         val novasCasas = shape.frets.map { casa ->
             when {
                 casa == null -> null

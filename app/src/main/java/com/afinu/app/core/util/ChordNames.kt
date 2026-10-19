@@ -51,7 +51,10 @@ object ChordNames {
         }
 
         val rootMidi = 60 + ((base + alteration + 12) % 12)
-        return ChordSpec(rootMidi, qualidade)
+        // Guarda a grafia original ("Bb", "A#") para o app devolver o nome que
+        // o jogador digitou, e não o equivalente com sustenido.
+        val rootLabel = limpo.substring(0, indice)
+        return ChordSpec(rootMidi, qualidade, rootLabel)
     }
 
     /** Só a letra da tônica, com o acidenteo: "F#". */
@@ -60,6 +63,6 @@ object ChordNames {
         return tabela[((semitones % 12) + 12) % 12]
     }
 
-    /** Nome completo: "F#m7". */
-    fun labelOf(spec: ChordSpec): String = rootLabel(spec.rootMidi % 12) + spec.quality.suffix
+    /** Nome completo: "F#m7". Usa a grafia preservada, quando houver. */
+    fun labelOf(spec: ChordSpec): String = spec.rootName + spec.quality.suffix
 }
