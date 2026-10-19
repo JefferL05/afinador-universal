@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Formulário de Segurança dos Dados (Data Safety) da Play Console.
+
+  Preencha com "Nenhum dado coletado" em todas as categorias. Isto é
+  verificável: o app não declara a permissão INTERNET, então não existe caminho
+  de código capaz de enviar dados para fora. `tools/preflight.ps1` checa a
+  ausência dessa permissão na CI, para a declaração não virar uma promessa que
+  o código deixou de cumprir depois.
+-->
+<data-safety>
+    <no-data-shared>true</no-data-shared>
+    <no-data-collected>true</no-data-collected>
+
+    <data-not-collected>
+        <!--
+          Microfone: o app usa para detectar a frequência da nota, mas não
+          grava, não armazena e não transmite. O áudio é convertido em um
+          número e descartado a cada quadro de 85 ms.
+        -->
+        <microphone>
+            <collected>false</collected>
+            <shared>false</shared>
+            <optional>false</optional>
+            <purpose>APP_FUNCTIONALITY</purpose>
+        </microphone>
+    </data-not-collected>
+
+    <security-practices>
+        <!-- Sem tráfego de rede, sem Criptografia de dados em trânsito aplicável. -->
+        <data-encrypted-in-transit>false</data-encrypted-in-transit>
+        <app-access-controls>
+            <authentication-required>false</authentication-required>
+        </app-access-controls>
+    </security-practices>
+</data-safety>

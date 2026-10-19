@@ -1,0 +1,57 @@
+Título: Afinador Universal
+Título corto: Afinador
+
+Descripción corta (80 caracteres como máximo):
+Afinador de 34 instrumentos, metrónomo y acordes. Funciona sin internet.
+
+Descripción larga:
+
+Un afinador que hace una sola cosa y la acierta: decirte cuánto está
+desafinada tu cuerda, en el instante en que la pulsas.
+
+FUNCIONA SIN INTERNET, DE VERDAD
+La app no pide permiso de internet. No hay forma de que envíe nada a ninguna
+parte, porque no tiene por dónde enviarlo. Eso también significa que funciona
+en un concierto, en mitad del campo y en cualquier sitio donde no llegue la
+cobertura.
+
+34 INSTRUMENTOS
+Guitarra, de 7, 8 y 12 cuerdas, bajo (de 4, 5 y 6 cuerdas), ukulele,
+cavaquinho, violín, viola, violonchelo, banjo, mandolina, mandola, sitar,
+laúd, balalaika, guitarra portuguesa, lap steel y más.
+Vientos y percusión en modo cromático, que detecta cualquier nota
+automáticamente.
+
+AFINACIONES NO ESTÁNDAR, SIN COMPLICACIONES
+Drop D, Drop C, DADGAD, Open G, Open D, barítono, medio tono abajo, tono abajo.
+Cambiar es un toque — y el medidor apunta a la nota correcta de inmediato.
+
+SIMULADOR DE CEJILLA
+Elige la cejilla y la app calcula la afinación efectiva. Con cejilla en la
+2ª casa tu guitarra es Sol mayor, y a ese Sol afina: la nota que de verdad
+suenas.
+
+REFERENCIA AJUSTABLE
+La4 de 415 a 466 Hz, para quien afina en 432 o en 442. Más un ajuste fino en
+cents, para afinar "con tu guitarra" y no con la de fábrica.
+
+UN METRÓNOMO QUE NO SE SALE DEL TIEMPO
+El pulso viene del reloj de audio del dispositivo, no del sistema. Medido: 10
+microsegundos de desviación tras 10 minutos. Nada de acelerar junto con el
+error.
+
+HERRAMIENTAS
+• Carta de notas con las frecuencias, para afinar de oído
+• Acordes y mástil, respetando tu afinación y tu cejilla
+• Grabador de ideas, para no perder la frase que acabas de encontrar
+• Favoritos con exportar e importar
+
+HECHO PARA UNA MANO SÓLA
+Objetivos grandes, pantalla que no se apaga en mitad de la afinación, y
+funciona bien con el instrumento apoyado contra el cuerpo. Incluye lectura en
+voz para quien usa lector de pantalla.
+
+Lo que esta app no hace: crear cuenta, mostrar anuncios, ni pedir ningún
+permiso más allá del micrófono.
+
+Gracias. Si encuentras un fallo, el sitio correcto es el reporte de incidencias.

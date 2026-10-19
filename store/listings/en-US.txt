@@ -1,0 +1,56 @@
+Title: Universal Tuner
+Short title: Tuner
+
+Short description (80 characters max):
+Tuner for 34 instruments, metronome and chords. Works fully offline.
+
+Full description:
+
+A tuner that does one thing and gets it right: telling you how far off your
+string is, the instant you pluck it.
+
+ACTUALLY WORKS OFFLINE
+The app does not request internet permission. There is no way for it to send
+anything anywhere, because there is no way for it to send anything. Which also
+means it works at the show, in the middle of nowhere, and anywhere the signal
+does not reach.
+
+34 INSTRUMENTS
+Guitar, 7- and 8-string, 12-string, bass (4, 5 and 6 strings), ukulele,
+cavaquinho, violin, viola, cello, banjo, mandolin, mandola, sitar, lute,
+balalaika, Portuguese guitar, lap steel and more.
+Winds and percussion in chromatic mode, which detects any note automatically.
+
+NON-STANDARD TUNINGS, NO FUSS
+Drop D, Drop C, DADGAD, Open G, Open D, baritone, half step down, whole step
+down. Switching is one tap — and the dial retargets to the right note
+immediately.
+
+CAPO SIMULATOR
+Pick the fret and the app computes the effective tuning. With a capo on the
+3rd fret your guitar is G major, and that is the G it tunes to — the note you
+actually hear.
+
+ADJUSTABLE REFERENCE
+A4 from 415 to 466 Hz, for anyone tuning at 432 or 442. Plus a fine adjustment
+in cents, so you tune to your own guitar and not to the factory one.
+
+A METRONOME THAT STAYS IN TIME
+The beat comes from the device's audio clock, not from the system. Measured:
+10 microseconds of drift after 10 minutes. No speeding up along with the error.
+
+TOOLS
+• Note card with frequencies, for tuning by ear
+• Chords and fretboard, respecting your tuning and capo
+• Idea recorder, so the phrase you just found is not lost
+• Favourites with export and import
+
+BUILT FOR ONE HAND
+Large targets, a screen that does not sleep mid-tuning, and it works well with
+the instrument resting against your body. Includes spoken readout for screen
+reader users.
+
+What this app does not do: create an account, show ads, or request any
+permission beyond the microphone.
+
+Thanks. If you find a bug, an issue is the right place for it.

@@ -3,9 +3,9 @@
 Afinador de instrumentos musicais para Android. **Violão, guitarra, baixo e mais
 33 instrumentos** — com foco em afinar rápido, em qualquer lugar, sem internet.
 
-> **Estado atual:** Fases 1 a 6 concluídas. Falta apenas a Fase 7
-> (CI/release/assinatura, cujos arquivos já existem mas nunca foram testados
-> em um ambiente de build).
+> **Estado atual:** as 7 fases estão implementadas. **A compilação nunca foi
+> executada** — falta JDK 17 e Android SDK nesta máquina. O que foi verificado
+> está em [O que foi verificado](#o-que-foi-verificado).
 
 ---
 
@@ -244,6 +244,65 @@ cores do layout são literais.
 
 ---
 
+---
+
+## O que foi verificado
+
+Sem JDK nem Android SDK, não foi possível compilar. O que dá para conferir sem
+build, está conferido por `tools/preflight.ps1`, que roda em segundos e é
+executado na CI como portão antes de qualquer build:
+
+```
+== 1. Delimitadores balanceados      ok   69 arquivos Kotlin
+== 2. Recursos R.* existem          ok   146 referências resolvem
+== 3. Idiomas sincronizados          ok   3 locales com 136 chaves idênticas
+== 4. Import declarado e não usado   ok   nenhum import ocioso
+== 5. Segredos no índice do git      ok   nenhuma keystore versionada
+== 6. Manifesto                      ok   sem INTERNET, só RECORD_AUDIO
+== 7. Texto corrompido               ok   nenhum caractere inválido
+== 8. XML bem formado                ok   todos válidos
+```
+
+A matemática crítica — o algoritmo do YIN e a grade do metrônomo — foi validada em
+PowerShell com sinais sintetizados **antes** de ser portada para Kotlin, porque
+um erro nessas fórmulas não aparece em build: aparece como afinador que lê
+errado.
+
+```
+YIN: 0,07 cents em sinal limpo; 0,14 cents a 41 Hz com 5% de ruído
+Metrônomo: 0,4965 amostra de deriva em 360 000 cliques (10 microssegundos)
+```
+
+### O que continua sem verificação
+
+Compilação real, execução em dispositivo, minificação do R8 e o comportamento
+de OEM. São as quatro coisas que só um build de verdade prova.
+
+---
+
+## Publicação
+
+O fluxo completo está em **[`store/CHECKLIST.md`](store/CHECKLIST.md)**.
+
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+
+A CI gera o APK assinado e o AAB. **Antes de subir, instale o APK assinado no
+seu aparelho** e passe pela lista de verificação manual do checklist — os itens
+que quebram em release são exatamente os que o R8 afeta: Room abrindo o banco,
+Hilt injetando, e o receiver do widget sendo instanciado pelo sistema. Nada
+disso falha em debug.
+
+| Item | Onde |
+|---|---|
+| Textos da Play Store (pt, en, es) | `store/listings/` |
+| Declaração de Data Safety | `store/data-safety-pt-BR.xml` |
+| Política de privacidade | `PRIVACY.md` |
+| Notas sobre repositório público | `store/PRIVACY-NOTES.md` |
+
+---
 ## Arquitetura
 
 ```
@@ -299,7 +358,7 @@ Regras que o código segue:
 | 4 | Navegação, ajustes, favoritos, capo, cartão de notas | ✅ |
 | 5 | Metrônomo, acordes, braço, gravador | ✅ |
 | 6 | Onboarding, acessibilidade, widgets | ✅ |
-| 7 | CI/release, assinatura, Play Store | ⬜ |
+| 7 | CI, release, assinatura, textos da loja | ✅ |
 
 ---
 

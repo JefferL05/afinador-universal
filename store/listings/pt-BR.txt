@@ -1,0 +1,55 @@
+Título: Afinador Universal
+Título curto: Afinador
+
+Descrição curta (até 80 caracteres):
+Afinador de 34 instrumentos, metrônomo e acordes. Funciona sem internet.
+
+Descrição longa:
+
+Um afinador que faz uma coisa só e acerta: dizer a quanto a sua corda está
+desafinada, na hora.
+
+FUNCIONA OFFLINE, DE VERDADE
+O app não pede permissão de internet. Não tem como enviar nada para lugar
+nenhum, porque não tem por onde enviar. Isso também significa que funciona
+em show, no meio do mato e em qualquer lugar onde o sinal não chega.
+
+34 INSTRUMENTOS
+Violão, guitarra, baixo (4, 5 e 6 cordas), ukulele, cavaquinho, violino, viola,
+violoncelo, banjo, bandolim, mandolino, sitar, laúd, balalaika, guitarra
+portuguesa, lap steel e mais.
+Soprros e percussão em modo cromático, que detecta qualquer nota automaticamente.
+
+AFINAÇÕES NÃO PADRÃO, SEM ESFORÇO
+Drop D, Drop C, DADGAD, Open G, Open D, barítono, meio tom abaixo, tom abaixo.
+Trocar de afinação e um toque — e o medidor passa a mirar a nota certa
+imediatamente.
+
+SIMULADOR DE CAPO
+Coloque a casa do capo e o app calcula a afinação efetiva. Com capo na 3ª casa,
+seu violão é um Sol maior, e é para o Sol que o app afina — que é a nota que
+você ouve.
+
+REFERÊNCIA AJUSTÁVEL
+A4 de 415 a 466 Hz, para quem afina em 432 ou em 442. Mais um ajuste fino em
+cents, para afinar "no seu violão" e não no do fabricante.
+
+METRÔNOMO QUE NÃO SAI DO TEMPO
+O ritmo vem do relógio de áudio do aparelho, não do sistema. Medido: 10
+microssegundos de desvio depois de 10 minutos. Nada de arrastar junto com o
+erro.
+
+FERRAMENTAS
+• Cartão de notas com as frequências, para afinar de ouvido
+• Acordes e braço do instrumento, respeitando sua afinação e seu capo
+• Gravador de ideias, para não perder a frase que apareceu
+• Favoritos com exportar e importar
+
+FEITO PARA UMA MÃO SÓ
+Alvos grandes, tela que não apaga no meio da afinação, e funciona bem com o
+instrumento apoiado no corpo. Tem leitura de voz para quem usa leitor de tela.
+
+O que este app não faz: criar conta, mostrar anúncio, ou pedir qualquer
+permissão além do microfone.
+
+Obrigado. Se achar um erro, o issue é o lugar certo.

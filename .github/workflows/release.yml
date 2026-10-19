@@ -1,13 +1,20 @@
 name: Release
 
-# Publica um APK assinado e um AAB quando uma tag v* e criada.
+# Dispara ao criar uma tag v* (ex.: v1.0.0). Uma tag imutavel amarra o
+# artefato assinado a um commit especifico - sem isso, "o APK que mandei para a
+# loja" nao tem relacao verificavel com "o codigo na main".
 on:
   push:
     tags: [ 'v*' ]
 
+permissions:
+  contents: write
+
 jobs:
   release:
     runs-on: ubuntu-latest
+    timeout-minutes: 40
+
     steps:
       - uses: actions/checkout@v4
 
@@ -18,7 +25,24 @@ jobs:
 
       - uses: gradle/actions/setup-gradle@v4
 
-      # A keystore vem do repositorio de segredos; NUNCA va para o git.
+      - name: Conferir segredos
+        # Falhar aqui, no primeiro minuto, e muito melhor do que falhar
+        # depois de 20 minutos de build por causa de um segredo nao configurado.
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for v in KEYSTORE_B64 KEYSTORE_PASSWORD KEY_ALIAS KEY_PASSWORD; do
+            if [ -z "${!v}" ]; then
+              echo "Segredo ausente: $v"
+              exit 1
+            fi
+          done
+          echo "Todos os segredos de assinatura estao configurados."
+
       - name: Decodificar keystore
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -26,26 +50,83 @@ jobs:
           KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
           KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
         run: |
-          echo "$KEYSTORE_B64" | base64 -d > afinador.jks
+          set -euo pipefail
+          echo "$KEYSTORE_B64" | base64 -d > "$RUNNER_TEMP/afinador.jks"
+
+          # Confere a senha antes de compilar: um erro de senha aqui e
+          # imediato, o mesmo erro durante o build chega 15 minutos depois.
+          keytool -list -keystore "$RUNNER_TEMP/afinador.jks" \
+            -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+
           cat > keystore.properties <<EOF
-          storeFile=${{ github.workspace }}/afinador.jks
+          storeFile=$RUNNER_TEMP/afinador.jks
           storePassword=$KEYSTORE_PASSWORD
           keyAlias=$KEY_ALIAS
           keyPassword=$KEY_PASSWORD
           EOF
+          echo "keystore.properties escrito."
+
+      - name: Preflight
+        shell: pwsh
+        run: ./tools/preflight.ps1
 
       - name: Testes
-        run: ./gradlew testDebugUnitTest
+        run: ./gradlew testDebugUnitTest --stacktrace
 
-      - name: APK release assinado
-        run: ./gradlew assembleRelease
+      - name: APK e AAB assinados
+        run: ./gradlew assembleRelease bundleRelease --stacktrace
 
-      - name: AAB para a Play Store
-        run: ./gradlew bundleRelease
+      - name: Conferir a assinatura
+        # Um APK sem assinatura instala em debug e e rejeitado pela loja.
+        # Verificar aqui evita descobrir isso no upload.
+        run: |
+          set -euo pipefail
+          APK=app/build/outputs/apk/release/app-release.apk
+          test -f "$APK" || { echo "APK assinado nao encontrado"; exit 1; }
 
-      - uses: actions/upload-artifact@v4
+          APKSIGNER=$(ls -d "$ANDROID_HOME"/build-tools/*/apksigner 2>/dev/null | tail -1)
+          test -n "$APKSIGNER" || { echo "apksigner nao encontrado"; exit 1; }
+          "$APKSIGNER" verify --print-certs "$APK" | head -5
+          echo "Assinatura verificada."
+
+      - name: Checksums
+        run: |
+          set -euo pipefail
+          cd app/build/outputs
+          sha256sum apk/release/*.apk bundle/release/*.aab > SHA256SUMS.txt
+          cat SHA256SUMS.txt
+
+      - name: Mapa de ofuscacao
+        # Sem o mapping.txt, um crashReport do release nao pode ser
+        # desofuscado e o Play Console mostra so "classe A". E a diferenca entre
+        # corrigir um bug em um dia e em um mes.
+        uses: actions/upload-artifact@v4
         with:
-          name: afinador-release
-          path: |
+          name: mapping
+          path: app/build/outputs/mapping/release/mapping.txt
+          retention-days: 365
+
+      - name: Publicar no GitHub Releases
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
             app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
+            app/build/outputs/SHA256SUMS.txt
+          generate_release_notes: true
+          body: |
+            ## Checksums
+
+            ```
+            $(cat app/build/outputs/SHA256SUMS.txt)
+            ```
+
+            ## Para subir na Play Store
+
+            O arquivo `.aab` e o que vai para o upload. O `.apk` serve para
+            instalar manualmente e testar antes de publicar.
+
+            ## Se precisar depurar um crash
+
+            O artefato `mapping` tem o `mapping.txt` do R8. Sem ele, stack
+            traces do release sao ilegiveis.

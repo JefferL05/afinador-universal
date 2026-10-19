@@ -35,9 +35,13 @@ android {
         // buildConfigField("boolean", "PREMIUM_BUILD", "false")
     }
 
-    signingConfigs {
-        create("release") {
-            if (keystorePropsFile.exists()) {
+    // A keystore só é criada quando o arquivo existe. Criar um signingConfig
+    // com todas as propriedades nulas e atribuí-lo a um build type faz o AGP
+    // falhar em tempo de configuração com uma mensagem que não menciona a
+    // keystore — e o CI "sem assinatura" quebraria exatamente por isso.
+    if (keystorePropsFile.exists()) {
+        signingConfigs {
+            create("release") {
                 storeFile = rootProject.file(keystoreProps.getProperty("storeFile"))
                 storePassword = keystoreProps.getProperty("storePassword")
                 keyAlias = keystoreProps.getProperty("keyAlias")
@@ -61,6 +65,11 @@ android {
             )
             if (keystorePropsFile.exists()) {
                 signingConfig = signingConfigs.getByName("release")
+            } else {
+                logger.warn(
+                    "keystore.properties nao encontrado: o APK de release sai " +
+                        "SEM ASSINATURA. Servindo para testar o R8, nao para publicar."
+                )
             }
         }
     }
