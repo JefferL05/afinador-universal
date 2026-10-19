@@ -1,8 +1,10 @@
 name: CI
 
+# `master`, e nao `main`: e o nome da branch deste repositorio. Com `main` a
+# CI ficaria verde por nunca ter rodado — nenhuma execucao, nenhuma falha.
 on:
   push:
-    branches: [ main ]
+    branches: [ master ]
   pull_request:
   workflow_dispatch:
 
