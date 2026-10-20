@@ -204,7 +204,7 @@ class TunerViewModel @Inject constructor(
         val started = audioCapture.start(frameSize)
         if (!started) {
             _uiState.update {
-                it.copy(micState = MicState.Failed("Não foi possível acessar o microfone"))
+                it.copy(micState = MicState.Failed(MicFailure.INDISPONIVEL))
             }
             return
         }
@@ -222,7 +222,7 @@ class TunerViewModel @Inject constructor(
                     if (!audioCapture.isRunning) {
                         withContext(Dispatchers.Main) {
                             _uiState.update {
-                                it.copy(micState = MicState.Failed("Microfone interrompido"))
+                                it.copy(micState = MicState.Failed(MicFailure.INTERRUPTO))
                             }
                         }
                         break

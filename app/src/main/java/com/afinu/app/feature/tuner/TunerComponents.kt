@@ -26,12 +26,14 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.afinu.app.R
 import com.afinu.app.core.audio.NoteReading
 import com.afinu.app.core.util.MusicTheory
 import com.afinu.app.ui.accessibility.TouchTarget
@@ -300,18 +302,53 @@ fun MicStatusBanner(
     onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val (message, action) = when (state) {
-        MicState.NeedsPermission -> "O afinador precisa do microfone para ouvir o instrumento." to "Permitir"
-        is MicState.Failed -> state.reason to "Tentar de novo"
+    val titulo: String?
+    val mensagem: String
+    val acao: String
+
+    when (state) {
+        MicState.NeedsPermission -> {
+            // A explicação vem ANTES do diálogo do sistema, com as palavras do
+            // app. O diálogo nativo segue o locale do APARELHO (ignora o locale
+            // por app) e não explica nada. Para um produto cuja promessa é
+            // "nada sai deste aparelho", este é o texto mais importante do app
+            // — e existia nos três idiomas sem ser usado.
+            titulo = stringResource(R.string.mic_permission_title)
+            mensagem = stringResource(R.string.mic_permission_body)
+            acao = stringResource(R.string.mic_permission_button)
+        }
+
+        is MicState.Failed -> {
+            titulo = null
+            mensagem = when (state.causa) {
+                MicFailure.INDISPONIVEL -> stringResource(R.string.mic_failed_unavailable)
+                MicFailure.INTERRUPTO -> stringResource(R.string.mic_failed_interrupted)
+            }
+            acao = stringResource(R.string.mic_retry)
+        }
+
         else -> return
     }
+
     Surface(
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.errorContainer,
         modifier = modifier.fillMaxWidth(),
     ) {
         Column(Modifier.padding(16.dp)) {
-            Text(message, style = MaterialTheme.typography.bodyMedium)
+            if (titulo != null) {
+                Text(
+                    titulo,
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                )
+                Spacer(Modifier.height(6.dp))
+            }
+            Text(
+                mensagem,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
             Spacer(Modifier.height(8.dp))
             Surface(
                 onClick = onRequestPermission,
@@ -319,7 +356,7 @@ fun MicStatusBanner(
                 color = MaterialTheme.colorScheme.error,
             ) {
                 Text(
-                    action,
+                    acao,
                     color = MaterialTheme.colorScheme.onError,
                     style = MaterialTheme.typography.labelLarge,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 10.dp),

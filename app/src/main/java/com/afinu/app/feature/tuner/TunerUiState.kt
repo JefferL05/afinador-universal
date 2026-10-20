@@ -98,5 +98,20 @@ sealed interface MicState {
     data object Listening : MicState
 
     /** Permissão concedida mas o microfone não pôde ser aberto. */
-    data class Failed(val reason: String) : MicState
+    data class Failed(val causa: MicFailure) : MicState
+}
+
+/**
+ * Motivo de [MicState.Failed] — motivo, e não texto.
+ *
+ * O ViewModel não tem `Context`, então guardava a frase pronta em português e
+ * ela aparecia igual em inglês e em espanhol. A tela resolve o motivo para o
+ * idioma certo.
+ */
+enum class MicFailure {
+    /** A permissão existe, mas a captura não abriu — em geral outro app está com o microfone. */
+    INDISPONIVEL,
+
+    /** A captura estava rodando e parou: outro app tomou o microfone ou o sistema a derrubou. */
+    INTERRUPTO,
 }

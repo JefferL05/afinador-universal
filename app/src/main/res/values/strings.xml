@@ -10,6 +10,9 @@
     <string name="mic_permission_body">O áudio é analisado apenas neste aparelho. Nada é gravado, enviado para servidores ou compartilhado.</string>
     <string name="mic_permission_button">Permitir microfone</string>
     <string name="mic_permission_later">Agora não</string>
+    <string name="mic_failed_unavailable">Não foi possível abrir o microfone. Outro app pode estar usando.</string>
+    <string name="mic_failed_interrupted">O microfone parou no meio da leitura.</string>
+    <string name="mic_retry">Tentar de novo</string>
 
     <!-- Ex.: "Corda 6, Mi" -->
     <string name="string_number">Corda %1$d, %2$s</string>
