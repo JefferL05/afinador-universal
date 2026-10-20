@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Caminhos que o FileProvider pode expor.
+
+  Só as gravações de ideias. Nada mais do filesDir sai daqui: o afinador não
+  tem configuração exportável, nem cache com conteúdo do usuário.
+
+  Sem este arquivo, o `Uri.fromFile` que a tela de gravação construía lançava
+  `FileUriExposedException` a partir do Android 7 — o toque na gravação morria
+  antes de chegar ao player.
+-->
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <files-path
+        name="ideias"
+        path="ideias/" />
+</paths>

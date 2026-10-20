@@ -9,7 +9,6 @@
     <string name="mic_permission_title">O afinador precisa ouvir seu instrumento</string>
     <string name="mic_permission_body">O áudio é analisado apenas neste aparelho. Nada é gravado, enviado para servidores ou compartilhado.</string>
     <string name="mic_permission_button">Permitir microfone</string>
-    <string name="mic_permission_later">Agora não</string>
     <string name="mic_failed_unavailable">Não foi possível abrir o microfone. Outro app pode estar usando.</string>
     <string name="mic_failed_interrupted">O microfone parou no meio da leitura.</string>
     <string name="mic_retry">Tentar de novo</string>
@@ -84,9 +83,6 @@
     <string name="version">Versão %1$s</string>
     <string name="privacy_short">Funciona 100%% offline. Nenhuma permissão de internet, nenhum dado coletado, nada gravado.</string>
 
-    <string name="metronome_coming_soon">O metrônomo usa agendamento por amostras de áudio para não sair do tempo — isso está sendo implementado.</string>
-    <string name="chords_coming_soon">Os diagramas respeitam sua afinação e seu capo. Em breve.</string>
-
     <string name="instrument_violao">Violão</string>
     <string name="instrument_guitarra7">Guitarra 7 cordas</string>
     <string name="instrument_guitarra8">Guitarra 8 cordas</string>
@@ -138,9 +134,9 @@
     <string name="recorder_stop">Parar</string>
     <string name="recorder_saved">Gravação salva</string>
     <string name="recorder_failed">Não foi possível gravar</string>
+    <string name="recorder_no_player">Nenhum app para tocar esta gravação</string>
     <string name="recorder_empty">Nenhuma gravação ainda.</string>
     <string name="recorder_delete">Apagar gravação</string>
-    <string name="muted_string">Corda muda</string>
     <string name="barre_hint">Use batente</string>
     <string name="recorder_hint">Grave uma ideia e volte quando quiser.</string>
     <string name="tab_recorder">Gravar</string>

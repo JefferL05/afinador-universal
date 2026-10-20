@@ -9,7 +9,6 @@
     <string name="mic_permission_title">The tuner needs to hear your instrument</string>
     <string name="mic_permission_body">Audio is analysed on this device only. Nothing is recorded, uploaded or shared.</string>
     <string name="mic_permission_button">Allow microphone</string>
-    <string name="mic_permission_later">Not now</string>
     <string name="mic_failed_unavailable">Couldn\'t open the microphone. Another app may be using it.</string>
     <string name="mic_failed_interrupted">The microphone stopped mid-read.</string>
     <string name="mic_retry">Try again</string>
@@ -81,9 +80,6 @@
     <string name="version">Version %1$s</string>
     <string name="privacy_short">Runs 100%% offline. No internet permission, no data collected, nothing recorded.</string>
 
-    <string name="metronome_coming_soon">The metronome uses audio-sample scheduling to stay in time — this is being built.</string>
-    <string name="chords_coming_soon">Diagrams respect your tuning and capo. Coming soon.</string>
-
     <string name="instrument_violao">Guitar</string>
     <string name="instrument_guitarra7">7-string guitar</string>
     <string name="instrument_guitarra8">8-string guitar</string>
@@ -135,9 +131,9 @@
     <string name="recorder_stop">Stop</string>
     <string name="recorder_saved">Recording saved</string>
     <string name="recorder_failed">Could not record</string>
+    <string name="recorder_no_player">No app to play this recording</string>
     <string name="recorder_empty">No recordings yet.</string>
     <string name="recorder_delete">Delete recording</string>
-    <string name="muted_string">Muted string</string>
     <string name="barre_hint">Uses a barre</string>
     <string name="recorder_hint">Record an idea and come back to it later.</string>
     <string name="tab_recorder">Record</string>

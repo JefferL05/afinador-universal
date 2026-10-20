@@ -41,7 +41,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-    <receiver
+        <!--
+          Compartilha UMA pasta só: as gravações de ideias, em filesDir/ideias.
+
+          Por que existe: a tela de gravação delega a reprodução ao player do
+          sistema (o app não tem player próprio). Para o player de outro app
+          abrir um arquivo interno é preciso um content:// autorizado — mandar
+          um file:// direto lança `FileUriExposedException` no Android 7 ou
+          superior, e o toque morria antes de chegar a lugar nenhum.
+        -->
+        <provider
+            android:name="androidx.core.content.FileProvider"
+            android:authorities="${applicationId}.fileprovider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/file_paths" />
+        </provider>
+
+        <receiver
             android:name=".widget.TunerWidgetProvider"
             android:exported="true"
             android:label="@string/widget_label">

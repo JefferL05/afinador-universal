@@ -1,5 +1,6 @@
 package com.afinu.app.feature.recorder
 
+import android.content.ActivityNotFoundException
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -27,6 +28,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,6 +64,11 @@ fun RecorderScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // Tocar uma gravação abre OUTRO app — o afinador não tem player próprio.
+    // O intent é montado no ViewModel (que sabe o FileProvider), mas quem
+    // chama `startActivity` é aqui, que é o único com `Context`.
+    val context = LocalContext.current
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -84,13 +91,41 @@ fun RecorderScreen(
 
         Spacer(Modifier.height(8.dp))
 
+        // O botão já mostra o cronômetro enquanto grava, então aqui vai a dica de
+        // repouso. Depois de parar, o RESULTADO — que antes ficava guardado num
+        // campo de texto que nenhuma tela desenhava.
+        val (texto, cor) = when {
+            state.isRecording -> {
+                stringResource(R.string.recorder_hint) to
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            }
+
+            // `secondary` é o verde do tema (TunedGreen / TunedGreenDark),
+            // então funciona no claro e no escuro sem cor fixa.
+            state.result == RecordingResult.SALVO -> {
+                stringResource(R.string.recorder_saved) to
+                    MaterialTheme.colorScheme.secondary
+            }
+
+            state.result == RecordingResult.FALHOU -> {
+                stringResource(R.string.recorder_failed) to
+                    MaterialTheme.colorScheme.error
+            }
+
+            state.result == RecordingResult.SEM_PLAYER -> {
+                stringResource(R.string.recorder_no_player) to
+                    MaterialTheme.colorScheme.error
+            }
+
+            else -> {
+                stringResource(R.string.recorder_hint) to
+                    MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        }
         Text(
-            text = when {
-                state.isRecording -> state.message
-                else -> stringResource(R.string.recorder_hint)
-            },
+            text = texto,
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = cor,
             textAlign = TextAlign.Center,
         )
 
@@ -111,7 +146,19 @@ fun RecorderScreen(
                 items(state.recordings, key = { it.absolutePath }) { arquivo ->
                     RecordingRow(
                         file = arquivo,
-                        onPlay = { viewModel.play(arquivo) },
+                        onPlay = {
+                            // O toque agora CHEGA a algum lugar: antes o intent
+                            // era montado e guardado num campo que ninguém lia.
+                            // `ActivityNotFoundException` acontece quando nenhum
+                            // app do aparelho assume `audio/*` — não é erro
+                            // nosso, mas sem aviso o toque parece não registrado.
+                            val intent = viewModel.playIntent(arquivo)
+                            try {
+                                context.startActivity(intent)
+                            } catch (e: ActivityNotFoundException) {
+                                viewModel.avisoSemPlayer()
+                            }
+                        },
                         onDelete = { viewModel.delete(arquivo) },
                     )
                 }

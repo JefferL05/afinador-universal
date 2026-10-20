@@ -1,8 +1,11 @@
 package com.afinu.app.feature.recorder
 
+import android.content.Context
+import androidx.core.content.FileProvider
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,9 +20,36 @@ data class RecorderUiState(
     val isRecording: Boolean = false,
     val elapsedMs: Long = 0,
     val recordings: List<File> = emptyList(),
-    val message: String = "",
+    /**
+     * Resultado da última tentativa de gravação, para a tela confirmar.
+     *
+     * Antes isto era `message: String`, com os sentinemas `"ok"` e `"erro"`,
+     * e a tela só lia o campo enquanto `isRecording` era `true` — justamente
+     * o momento em que ele valia `""`. Ou seja: a mensagem de sucesso ou de
+     * falha existia no estado e nunca chegava a ser desenhada. Parar uma
+     * gravação não confirmava nada, e uma falha passava em silêncio.
+     */
+    val result: RecordingResult? = null,
 ) {
     val canRecord: Boolean get() = !isRecording
+}
+
+/**
+ * Resultado de uma tentativa de gravação.
+ *
+ * Motivo tipado e não texto, pela mesma razão dos falhos do afinador: o
+ * ViewModel não tem `Context` para localizar, e a frase pronta em português
+ * apareceria igual em inglês e em espanhol. A tela resolve para o idioma.
+ */
+enum class RecordingResult {
+    /** O arquivo existe e tem tamanho maior que zero. */
+    SALVO,
+
+    /** O `MediaRecorder` falhou ao iniciar, ou parou sem produzir amostra. */
+    FALHOU,
+
+    /** Nada no aparelho sabe tocar áudio — o toque na gravação foi recusado. */
+    SEM_PLAYER,
 }
 
 /**
@@ -39,6 +69,7 @@ data class RecorderUiState(
 @HiltViewModel
 class RecorderViewModel @Inject constructor(
     private val recorder: IdeaRecorder,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecorderUiState())
@@ -57,14 +88,17 @@ class RecorderViewModel @Inject constructor(
     private fun iniciar() {
         val arquivo = recorder.start()
         if (arquivo == null) {
+            // Falhou antes de gravar uma única amostra. O usuário precisa ver
+            // isso: o botão volta ao estado "gravar" e, sem aviso, parece que
+            // o toque não foi registrado.
             _uiState.update {
-                it.copy(message = MESSAGE_ERROR, isRecording = false)
+                it.copy(result = RecordingResult.FALHOU, isRecording = false)
             }
             return
         }
 
         _uiState.update {
-            it.copy(isRecording = true, elapsedMs = 0, message = "")
+            it.copy(isRecording = true, elapsedMs = 0, result = null)
         }
 
         elapsedJob?.cancel()
@@ -86,11 +120,18 @@ class RecorderViewModel @Inject constructor(
         elapsedJob?.cancel()
         elapsedJob = null
         recarregar()
+        // `stop()` devolve `null` quando nada foi gravado — `MediaRecorder`
+        // interrompido, ou um arquivo truncado de zero bytes. Antes isso virava
+        // um sentinema "erro" que ninguém desenhava.
         _uiState.update {
             it.copy(
                 isRecording = false,
                 elapsedMs = 0,
-                message = if (arquivo != null) MESSAGE_OK else MESSAGE_ERROR,
+                result = if (arquivo != null) {
+                    RecordingResult.SALVO
+                } else {
+                    RecordingResult.FALHOU
+                },
             )
         }
     }
@@ -100,24 +141,41 @@ class RecorderViewModel @Inject constructor(
         recarregar()
     }
 
-    fun play(file: File) {
-        // A reprodução é delegada ao player do sistema: o app não implementa
-        // player, o que significaria lidar com faixas, foco de áudio e o
-        // botão do sistema de agora há pouco.
-        val intent = android.content.Intent(
-            android.content.Intent.ACTION_VIEW,
-            android.net.Uri.fromFile(file),
-        ).apply {
+    /**
+     * Intent que abre a gravação no player do sistema.
+     *
+     * ## Por que virou função, e não um campo
+     * Antes o intent era montado e guardado em `lastPlayIntent`, mas **ninguém**
+     * chamava `startActivity`: tocar numa gravação não fazia literalmente nada,
+     * sem erro e sem mensagem. A Activity não é alcançável daqui, e o
+     * Composable tem o `Context` na mão — então a função devolve o intent e quem
+     * dispara é a tela.
+     *
+     * O `FileProvider` dá um `content://` no lugar do `Uri.fromFile`: a partir
+     * do Android 7 mandar `file://` para outro processo lança
+     * `FileUriExposedException` e o intent morre no caminho.
+     *
+     * Não há `resolveActivity()` aqui de propósito: ele devolve `null` no
+     * Android 11+ salvo se houver `<queries>` declarada, o que transformaria
+     * todo toque em "sem player" num aparelho que tem um. Quem dispara pega a
+     * `ActivityNotFoundException`.
+     */
+    fun playIntent(file: File): android.content.Intent {
+        val uri = FileProvider.getUriForFile(
+            context,
+            "${context.packageName}.fileprovider",
+            file,
+        )
+        return android.content.Intent(android.content.Intent.ACTION_VIEW).apply {
+            setDataAndType(uri, "audio/*")
             addFlags(android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            setPackage("com.google.android.apps.music")
         }
-        _uiState.update { it.copy(message = file.name) }
-        lastPlayIntent = intent
     }
 
-    /** O ViewModel guarda o intent; quem dispara é a Activity. */
-    var lastPlayIntent: android.content.Intent? = null
-        private set
+    /** A tela chama quando `startActivity` lança `ActivityNotFoundException`. */
+    fun avisoSemPlayer() {
+        _uiState.update { it.copy(result = RecordingResult.SEM_PLAYER) }
+    }
 
     private fun recarregar() {
         _uiState.update { it.copy(recordings = recorder.listRecordings()) }
@@ -128,10 +186,5 @@ class RecorderViewModel @Inject constructor(
         recorder.cancel()
         elapsedJob?.cancel()
         super.onCleared()
-    }
-
-    private companion object {
-        const val MESSAGE_OK = "ok"
-        const val MESSAGE_ERROR = "erro"
     }
 }
