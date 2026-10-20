@@ -355,9 +355,16 @@ diagnóstico do AGP não aponta nem de perto para a causa.
 
 ### O que continua sem verificação
 
-Execução em aparelho, comportamento de OEM e o APK **assinado**. São as coisas
-que só o aparelho prova — a lista está em
+O APK **assinado** e o comportamento em aparelhos de OEM reais (Xiaomi,
+Samsung, Motorola). São as coisas que só o hardware prova — a lista está em
 [`store/CHECKLIST.md`](store/CHECKLIST.md) §6.
+
+A execução em si já foi percorrida: as seis telas foram varridas num emulador
+Android 14 (API 34) em pt-BR, e os doze achados de
+[`PROMPT_MELHORIAS.md`](PROMPT_MELHORIAS.md) foram reproduzidos antes de
+corrigir e conferidos depois de corrigir, incluindo o fluxo completo de
+permissão (revogar → conceder → afinador voltar a ouvir sem reiniciar) e o
+gravador (gravar → confirmação → tocar no player do sistema).
 
 ## Publicação
 
@@ -427,7 +434,9 @@ Regras que o código segue:
 
 ---
 
-## Fases restantes
+## Fases
+
+Todas as sete concluídas. Cada uma é um commit com o que ela entrega e por quê.
 
 | Fase | Conteúdo | Estado |
 |---|---|---|
