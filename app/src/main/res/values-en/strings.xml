@@ -24,6 +24,7 @@
     <string name="keep_screen_on">Keep screen on</string>
     <string name="metronome">Metronome</string>
     <string name="notes_card">Note card</string>
+    <string name="semitones_from_a4">%1$d semitones</string>
     <string name="chords">Chords</string>
     <string name="settings">Settings</string>
 

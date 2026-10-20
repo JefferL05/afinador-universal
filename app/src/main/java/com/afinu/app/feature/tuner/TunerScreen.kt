@@ -55,7 +55,9 @@ fun TunerScreen(
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
 
-    LaunchedEffect(state.micState) {
+    // Duas chaves, não uma: sem `hasPermission` o efeito não dispara quando o
+    // usuário concede a permissão e o `micState` já estava parado em erro.
+    LaunchedEffect(state.micState, state.hasPermission) {
         viewModel.startAudioIfPermitted(state.hasPermission)
     }
 

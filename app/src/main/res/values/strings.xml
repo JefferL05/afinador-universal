@@ -25,6 +25,9 @@
     <string name="keep_screen_on">Manter tela acesa</string>
     <string name="metronome">Metrônomo</string>
     <string name="notes_card">Cartão de notas</string>
+    <!-- Distância em semitons do Lá4. Semitons, não cents: no instrumento a
+         régua é a casa do braço, e cents só serve para o ponteiro. -->
+    <string name="semitones_from_a4">%1$d semitons</string>
     <string name="chords">Acordes</string>
     <string name="settings">Ajustes</string>
 

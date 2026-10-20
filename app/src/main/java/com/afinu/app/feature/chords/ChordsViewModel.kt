@@ -110,6 +110,13 @@ class ChordsViewModel @Inject constructor(
     private fun buscar(root: Int, quality: ChordQuality) {
         val tuning = _uiState.value.tuning ?: return
         _uiState.update { it.copy(searching = true) }
+
+        // O braço já nasce marcando a RAIZ do acorde. Antes
+        // `highlightSemitones` só mudava quando o usuário tocava numa nota, aí
+        // a tela abria com uma grade de linhas completamente vazia — sem
+        // nenhuma marca e sem explicação do que aquilo representava.
+        destacar(root)
+
         viewModelScope.launch {
             val formas = withContext(Dispatchers.Default) {
                 ChordFinder.findShapes(

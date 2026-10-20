@@ -27,6 +27,16 @@ data class TunerUiState(
     /** Estado do microfone. */
     val micState: MicState = MicState.Idle,
 
+    /**
+     * Permissão de microfone **lida do sistema**, nunca deduzida de [micState].
+     *
+     * Antes era `micState !is NeedsPermission`, o que devolvia `true` para um
+     * estado de erro. Com isso, quem tentava recuperar via "Tentar de novo"
+     * enxergava "já tem permissão" e o afinador ficava preso no erro até o
+     * usuário matar o app.
+     */
+    val hasPermission: Boolean = false,
+
     /** Leitura atual já estabilizada, ou null se nada foi detectado. */
     val reading: NoteReading? = null,
 
@@ -59,7 +69,6 @@ data class TunerUiState(
     val inTuneCount: Int = 0,
 ) {
     val isListening: Boolean get() = micState == MicState.Listening
-    val hasPermission: Boolean get() = micState !is MicState.NeedsPermission
 
     /** O capo está em uso? Muda o que o cabeçalho e a tela de ajustes mostram. */
     val hasCapo: Boolean get() = capoFret != 0

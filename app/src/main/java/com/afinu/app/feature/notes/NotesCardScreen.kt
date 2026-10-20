@@ -40,12 +40,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import javax.inject.Inject
 
-/** Uma linha do cartão: nome da nota, valor em cents e frequência. */
+/**
+ * Uma linha do cartão: nome da nota, distância em semitons do Lá4 e frequência.
+ *
+ * A distância é em **semitons**, não em cents. Cents é a unidade do ponteiro do
+ * afinador; no instrumento a régua é a casa do braço. "-900 cents" parecia um
+ * erro de cálculo, "-9 semitons" é algo que o músico lê como "nove casas abaixo
+ * do Lá".
+ */
 data class NoteRow(
     val midi: Int,
     val label: String,
     val frequencyHz: Float,
-    val centsFromA4: Int,
+    val semitonesFromA4: Int,
 )
 
 data class NotesCardUiState(
@@ -93,7 +100,7 @@ class NotesCardViewModel @Inject constructor(
                 midi = midi,
                 label = MusicTheory.labelOf(midi),
                 frequencyHz = hz,
-                centsFromA4 = (midi - MusicTheory.MIDI_A4) * 100,
+                semitonesFromA4 = midi - MusicTheory.MIDI_A4,
             )
         }
         return NotesCardUiState(a4Hz = a4Efetivo, rows = rows)
@@ -159,9 +166,12 @@ private fun NoteCard(row: NoteRow) {
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Medium,
                 )
+                // O sinal vem do próprio Int: "-9" e "2" já indicam direção.
                 Text(
-                    text = if (row.centsFromA4 >= 0) "+${row.centsFromA4} cents"
-                    else "${row.centsFromA4} cents",
+                    text = stringResource(
+                        R.string.semitones_from_a4,
+                        row.semitonesFromA4,
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )

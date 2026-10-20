@@ -11,6 +11,7 @@ import com.afinu.app.core.audio.YinDetector
 import com.afinu.app.core.model.Instrument
 import com.afinu.app.core.model.InstrumentFamily
 import com.afinu.app.core.model.TuningPreset
+import com.afinu.app.core.permission.MicPermission
 import com.afinu.app.core.util.Capo
 import com.afinu.app.data.catalog.InstrumentCatalog
 import com.afinu.app.data.prefs.AppSettings
@@ -50,6 +51,7 @@ class TunerViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val confirmTone: ConfirmTonePlayer,
     private val haptics: Haptics,
+    private val micPermission: MicPermission,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TunerUiState())
@@ -79,6 +81,41 @@ class TunerViewModel @Inject constructor(
 
     init {
         observeSettings()
+        observePermission()
+    }
+
+    /**
+     * Reage ao diálogo de sistema e a mudanças feitas fora do app.
+     *
+     * A permissão é relida do `PackageManager` a cada disparo, nunca presumida.
+     * Antes `hasPermission` era derivado de `micState`, o que fazia um estado
+     * de erro devolver "tem permissão" — e o "Tentar de novo" ficava sem como
+     * recuperar.
+     *
+     * [MicPermission.resposta] só serve de gatilho: ela muda pouco, e o valor
+     * verdadeiro vem do sistema, que é a única fonte que não mente.
+     */
+    private fun observePermission() {
+        viewModelScope.launch {
+            micPermission.resposta.collect {
+                applyPermission(micPermission.concedida())
+            }
+        }
+    }
+
+    /** Põe o estado da tela em linha com o que o sistema diz. */
+    private fun applyPermission(concedida: Boolean) {
+        _uiState.update { it.copy(hasPermission = concedida) }
+
+        if (concedida) {
+            // Captura já rodando = nada a fazer. Conceder passa a recuperar o
+            // microfone sem reiniciar o app.
+            if (audioJob?.isActive != true) startAudio(hasPermission = true)
+            return
+        }
+
+        stopAudio()
+        _uiState.update { it.copy(micState = MicState.NeedsPermission, reading = null) }
     }
 
     private fun observeSettings() {
@@ -138,16 +175,6 @@ class TunerViewModel @Inject constructor(
         }
     }
 
-    /** Chamado quando a permissão de microfone muda. */
-    fun onPermissionResult(granted: Boolean) {
-        if (granted) {
-            startAudio(hasPermission = true)
-        } else {
-            stopAudio()
-            _uiState.update { it.copy(micState = MicState.NeedsPermission, reading = null) }
-        }
-    }
-
     fun startAudioIfPermitted(hasPermission: Boolean) {
         if (!hasPermission) {
             _uiState.update { it.copy(micState = MicState.NeedsPermission) }
@@ -161,6 +188,17 @@ class TunerViewModel @Inject constructor(
     private fun startAudio(hasPermission: Boolean) {
         if (!hasPermission) return
         if (activeWindow == 0) return
+
+        // Falta de permissão NÃO é falha de captura. Antes as duas coisas
+        // viravam o mesmo estado de erro, e o usuário via "Tentar de novo"
+        // para um problema que era "Permitir". As quatro strings de explicação
+        // (mic_permission_*) nunca eram usadas por causa disso.
+        if (!micPermission.concedida()) {
+            _uiState.update {
+                it.copy(hasPermission = false, micState = MicState.NeedsPermission)
+            }
+            return
+        }
 
         val frameSize = activeWindow
         val started = audioCapture.start(frameSize)

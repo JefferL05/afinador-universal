@@ -3,6 +3,7 @@ package com.afinu.app.ui.navigation
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -64,18 +65,40 @@ fun MainScreen(
                             }
                         },
                         icon = { Icon(destino.icon, contentDescription = null) },
-                        label = { Text(stringResource(destino.labelRes)) },
+                        label = {
+                            // Uma linha, sempre. Sem isto o rótulo quebra no
+                            // meio da palavra ("Afinad / or", "Metrôn / omo")
+                            // porque seis abas em 360 dp cabem em ~60 dp cada.
+                            // `labelSmall` devolve o espaço que o `labelMedium`
+                            // padrão do Material 3 não tem, e o corte por
+                            // reticências vira exceção em vez de rotina.
+                            Text(
+                                text = stringResource(destino.labelRes),
+                                style = MaterialTheme.typography.labelSmall,
+                                maxLines = 1,
+                                softWrap = false,
+                            )
+                        },
                     )
                 }
             }
         },
     ) { padding ->
+        // O `Scaffold` do Material 3 já calcula os insets do sistema — barra de
+        // status em cima, barra de navegação embaixo — e devolve tudo pronto em
+        // `padding`. Antes só o rodapé era aplicado, então todo título desenhava
+        // por baixo da barra de status: "Violão" ficava em cima do relógio e
+        // "Trocar" em cima do wifi em todas as seis telas. Com targetSdk 35 o
+        // edge-to-edge é imposto pelo sistema, não é uma escolha do tema.
+        //
+        // Nenhuma tela tem `TopAppBar` nem `Scaffold` próprio, então aplicar o
+        // padding completo não duplica nada.
         NavHost(
             navController = navController,
             startDestination = Destination.START.route,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(bottom = padding.calculateBottomPadding()),
+                .padding(padding),
         ) {
             composable(Destination.AFINADOR.route) {
                 TunerScreen(onRequestPermission = onRequestPermission)

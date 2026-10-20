@@ -16,7 +16,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -38,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.afinu.app.R
 import com.afinu.app.ui.accessibility.labelAndState
 import com.afinu.app.ui.components.ChipRow
+import kotlin.math.abs
 
 /**
  * Tela do metrônomo.
@@ -170,14 +170,20 @@ fun MetronomeScreen(
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.primary,
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            MetronomeConfig.PRESETS.take(4).forEach { (nome, bpm) ->
-                AssistChip(
-                    onClick = { viewModel.setBpm(bpm) },
-                    label = { Text(nome) },
-                )
-            }
-        }
+        // Antes era um `Row` cru com `PRESETS.take(4)`: quatro chips espremidos
+        // dentro da largura da tela (e "Moderato" quebrava em três linhas), e
+        // Allegro, Presto e Prestissimo ficavam **inacessíveis**. O `ChipRow`
+        // rola, cabe o catálogo inteiro e destaca o andamento mais próximo do
+        // BPM atual — tocar num preset muda o BPM, então destacar o equivalente
+        // mostra o que já está valendo.
+        ChipRow(
+            items = MetronomeConfig.PRESETS,
+            selected = MetronomeConfig.PRESETS.minByOrNull {
+                abs(it.second - state.config.bpm)
+            } ?: MetronomeConfig.PRESETS.first(),
+            labelOf = { it.first },
+            onSelect = { (_, bpm) -> viewModel.setBpm(bpm) },
+        )
 
         Spacer(Modifier.height(32.dp))
     }

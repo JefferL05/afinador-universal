@@ -1,10 +1,9 @@
 package com.afinu.app.ui.components
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Text
@@ -36,17 +35,25 @@ fun <T> ChipRow(
     modifier: Modifier = Modifier,
     descriptionOf: ((T) -> String)? = null,
 ) {
-    Row(
-        modifier = modifier.horizontalScroll(rememberScrollState()),
+    // `LazyRow` e não `Row + horizontalScroll`: um `Row` com rolagem mede os
+    // filhos com a largura da viewport como limite, então o `Text` encolhe e
+    // quebra linha — era assim que "Moderato" virava "Mo / der / ato" no
+    // metrônomo. `LazyRow` mede cada chip com largura ilimitada e o scroll
+    // passa a acontecer de verdade quando não cabe.
+    LazyRow(
+        modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
-        items.forEach { item ->
+        items(items) { item ->
             val isSelected = item == selected
             val label = labelOf(item)
             FilterChip(
                 selected = isSelected,
                 onClick = { onSelect(item) },
-                label = { Text(label) },
+                label = {
+                    // Uma linha, sempre. Mesma razão da barra de navegação.
+                    Text(label, maxLines = 1, softWrap = false)
+                },
                 colors = FilterChipDefaults.filterChipColors(),
                 modifier = Modifier.semantics {
                     contentDescription = descriptionOf?.invoke(item) ?: label

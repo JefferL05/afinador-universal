@@ -24,6 +24,7 @@
     <string name="keep_screen_on">Mantener pantalla encendida</string>
     <string name="metronome">Metrónomo</string>
     <string name="notes_card">Carta de notas</string>
+    <string name="semitones_from_a4">%1$d semitonos</string>
     <string name="chords">Acordes</string>
     <string name="settings">Ajustes</string>
 
