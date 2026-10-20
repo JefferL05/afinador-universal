@@ -1,11 +1,14 @@
-// FilterChip, Card(onClick) e AssistChip ainda sao experimentais no Material 3.
-@file:OptIn(ExperimentalMaterial3Api::class)
+// FilterChip, Card(onClick) e AssistChip ainda sao experimentais no Material 3,
+// e FlowRow ainda o e no foundation -- estabilizou so na Compose 1.8.
+@file:OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 
 package com.afinu.app.feature.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -220,9 +223,19 @@ private fun TuningSection(state: SettingsUiState, vm: SettingsViewModel) {
     }
 
     SettingsGroup(title = stringResource(R.string.tuning)) {
-        // Linhas verticais aqui, e nao chips: sao ate 12 afinacoes com nomes
-        // longos ("Meio tom abaixo"), que nao cabem numa fita horizontal.
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        // `FlowRow`, e nao uma coluna com um chip por linha: o violao tem 8
+        // afinações e o contrabaixo, 12. Uma por linha ocupa ate 672 dp de
+        // rolagem antes do próximo ajuste — a seção comia um terço da tela
+        // para mostrar oito palavras. O fluxo encaixa quantos couberem e quebra
+        // linha so quando realmente falta espaço.
+        //
+        // Nao e o `ChipRow` (LazyRow) do instrumento, de proposito: nomes como
+        // "Meio tom abaixo" nao cabem numa fita de 360 dp, e espremer de novo
+        // seria repetir o bug 2.2.
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             state.instrument.tunings.forEach { tuning ->
                 FilterChip(
                     selected = tuning.id == state.tuning.id,

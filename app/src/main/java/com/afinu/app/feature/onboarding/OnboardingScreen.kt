@@ -78,7 +78,12 @@ fun OnboardingScreen(
             .padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(48.dp))
+        // Peso em cima, igual ao de baixo dos pontos. Com um `height(48.dp)`
+        // aqui e um `weight(1f)` lá embaixo, todo o espaço que sobrava ia para
+        // um lado só: o conteúdo subia para o topo e a página ficava com um
+        // buraco de ~1/3 da tela entre os indicadores e os botões. Dois pesos
+        // iguais centram o conteúdo no espaço que existe acima dos botões.
+        Spacer(Modifier.weight(1f))
 
         AnimatedContent(
             targetState = state.page,
