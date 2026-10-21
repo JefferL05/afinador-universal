@@ -208,6 +208,29 @@ offsets rejeitaria a própria tônica de qualquer acorde que não seja de Dó, e
 buscador devolveria formas erradas ou nenhuma. `ChordQuality.contains(rootMidi,
 midi)` converte para intervalo antes de comparar.
 
+### As notas do acorde, e o som de cada uma
+
+O nome do acorde sozinho não diz quais notas o formam, e é exatamente isso que
+quem está começando não sabe. A tela mostra uma faixa **"Notas do acorde"** com
+a tônica preenchida e em negrito — é ela que dá nome ao acorde — e as demais
+notas neutras.
+
+A **oitava** vem da pegada, não de uma média teórica: a nota exibida é a nota
+que está na pegada. Para um Dó maior no violão, isso é C3, E3 e G3, e não
+"Dó, Mi, Sol" sem registro. `ChordTones` (em `core/util`, com 12 testes) faz
+essa conta.
+
+Tocar numa nota a toca, na altura correta: a frequência sai do **A4 das
+preferências**, então com o afinador em 432 Hz o Dó que o app mostra é o Dó de
+432. A nota que está soando ganha destaque, para o olho acompanhar o ouvido.
+
+O som usa o mesmo `ConfirmTonePlayer` que o widget usa para a nota de
+referência, com duas correções que só apareceram aqui: ele deixou de ser
+singleton (uma track compartilhada faria o afinador cortar o som do acorde no
+meio) e a track em `MODE_STATIC` passa a ser refeita quando o tom seguinte não
+cabe no buffer — escrever mais do que cabe falha **em silêncio**, e o som
+simplesmente não sai.
+
 ---
 
 ## Acessibilidade
