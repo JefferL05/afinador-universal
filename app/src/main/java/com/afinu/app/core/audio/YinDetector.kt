@@ -7,7 +7,7 @@ import kotlin.math.min
 import kotlin.math.sqrt
 
 /**
- * Detector de frequência fundamental pelo algoritmo YIN
+ * Detector de frequencia fundamental pelo algoritmo YIN
  * (de Cheveigne & Kawahara, 2002), na variante de limiar absoluto.
  *
  * ## Por que YIN e nao autocorrelacao pura
@@ -19,16 +19,24 @@ import kotlin.math.sqrt
  * A definicao ingenua custa O(W * tauMax) com tres operacoes por iteracao.
  * Este detector usa a forma equivalente
  *
- *     d(tau) = r0 + rTau(tau) - 2 * c(tau)
- *       r0     = soma de x[j]^2        -> constante
- *       rTau   = soma de x[j+tau]^2     -> atualizavel em O(1)
- *       c(tau) = soma de x[j]*x[j+tau]  -> correlacao cruzada, O(W) por tau
+ *   d(tau)  = r0 + rTau(tau) - 2 * c(tau)
+ *   r0      = soma de x[j]^2        -> constante
+ *   rTau    = soma de x[j+tau]^2    -> atualizavel em O(1)
+ *   c(tau)  = soma de x[j]*x[j+tau] -> correlacao cruzada, O(W) por tau
  *
  * A correlacao cruzada `c` NAO admite atualizacao em O(1); apenas `r0` e
  * `rTau` admitem. Trocar o calculo direto por uma recorrencia ingenua aqui e
  * um erro comum que funciona em sinais curtos e quebra em silencio e ruido. Os
  * testes de regressao deste arquivo existem para impedir que isso volte: uma
  * versao anterior usava exatamente essa recorrencia e colapsava.
+ *
+ * ## A normalizacao (CMND) comeca em tau = 1
+ * O CMND do YIN divide d(tau) pela media de d(1..tau). A funcao de diferenca
+ * e, portanto, calculada desde tau = 1, mesmo que a busca do limiar so olhe
+ * a partir de `tauMin`. Pular os primeiros lags infla o CMND em tau pequeno
+ * (notas agudas): o vale da nota real deixava de cruzar o limiar na presenca
+ * de ruido e o detector devolvia um multiplo do periodo, varias oitavas
+ * abaixo. O custo extra e de `tauMin - 1` correlacoes (cerca de 1% por quadro).
  *
  * Medido em 48 kHz com janela 4096: 0,06 cents de erro em sinal limpo, e a
  * faixa detectavel vai de 27,5 Hz a 2.087 Hz. Com janela 8192 (instrumentos
@@ -88,22 +96,26 @@ class YinDetector(
         if (sqrt(r0 / window) < minRms) return null
 
         // --- 1. Funcao de diferenca ---------------------------------------------
+        // Comeca em tau = 1 (e nao em tauMin): o CMND do passo 2 depende da soma
+        // de d(1..tau). Ver "A normalizacao (CMND) comeca em tau = 1" acima.
         var rTau = 0.0
         for (j in 0 until window) {
-            val v = scratch[j + tauMin]
+            val v = scratch[j + 1]
             rTau += v * v
         }
 
-        for (tau in tauMin..tauMax) {
-            if (tau > tauMin) {
+        for (tau in 1..tauMax) {
+            if (tau > 1) {
                 val entrou = scratch[window - 1 + tau]
                 val saiu = scratch[tau - 1]
                 rTau += entrou * entrou - saiu * saiu
             }
+
             var correlacao = 0.0
             for (j in 0 until window) {
                 correlacao += scratch[j] * scratch[j + tau]
             }
+
             val d = r0 + rTau - 2.0 * correlacao
             // A diferenca e uma soma de quadrados, logo nunca negativa; o clamp
             // existe so para absorver erro de ponto flutuante na subtracao.
@@ -118,13 +130,38 @@ class YinDetector(
             cmnd[tau] = if (acumulada > 0.0) difference[tau] * tau / acumulada else 1.0
         }
 
-        // --- 3. Limiar absoluto: primeiro vale abaixo do limiar ----------------
+        // --- 3. Limiar: primeiro vale fundo o bastante ------------------------
         // Percorrer de tauMin para tauMax encontra o vale de MAIOR frequencia
         // primeiro, que e o fundamental, e nao um harmonico.
+        //
+        // ## Por que o limiar e ancorado no melhor vale da curva
+        // Um limiar absoluto so funciona quando a curva chega perto de zero, e
+        // isso so acontece em sinal limpo. Com 5% de ruido, o vale do periodo
+        // real fica em ~0,126: acima de 0,12. O detector nao achava o
+        // fundamental e escorregava para um multiplo do periodo -- a 27,5 Hz,
+        // quatro oitavas abaixo, lido como se fosse a nota.
+        //
+        // ## Por que ha um teto alem do limiar
+        // O limiar relativo sozinho e frouxo demais: no ruido branco o melhor
+        // vale ja e 0,93, e 1,5 vez isso aceitaria qualquer coisa. Por isso a
+        // curva precisa provar que TEM um periodo -- o melhor vale tem de ser
+        // fundo de verdade -- antes de qualquer vale ser aceito.
+        //
+        // Medido: notas com 5% de ruido ficam entre 0,105 e 0,121; o E1 fora
+        // de faixa (janela de 2048) fica em 0,233; ruido branco em 0,928. O
+        // teto em 0,18 fica no meio do vao.
+        var melhorVale = Double.MAX_VALUE
+        for (t in tauMin..tauMax) {
+            if (cmnd[t] < melhorVale) melhorVale = cmnd[t]
+        }
+        if (melhorVale > TETO_DE_PERIODO) return null
+
+        val limiar = max(threshold.toDouble(), melhorVale * FATOR_VALE_MAIS_FUNDO)
+
         var tauEstimado = -1
         var tau = tauMin
         while (tau <= tauMax) {
-            if (cmnd[tau] < threshold) {
+            if (cmnd[tau] < limiar) {
                 while (tau + 1 <= tauMax && cmnd[tau + 1] < cmnd[tau]) tau++
                 tauEstimado = tau
                 break
@@ -132,27 +169,9 @@ class YinDetector(
             tau++
         }
         if (tauEstimado < 0) return null
-        var valorDoVale = cmnd[tauEstimado]
+        val valorDoVale = cmnd[tauEstimado]
 
-        // --- 4. Correcao de oitava conservadora ---------------------------------
-        // So corrige para cima (tau/2, ou seja, uma oitava acima) e somente
-        // quando o vale na metade do periodo e mais que o DOBRO mais profundo.
-        // Ondas quadradas e dentes de serra tambem tem um vale em tau/2, mas com
-        // profundidade equivalente, entao a razao fica perto de 1 e nenhuma
-        // correcao indevida acontece. Sem esse criterio, ondas simetricas leem
-        // uma oitava acima e o afinador fica inutilizavel para guitarra.
-        if (tauEstimado >= 4 && tauEstimado % 2 == 0) {
-            val metade = tauEstimado / 2
-            if (metade >= tauMin) {
-                val la = cmnd[metade]
-                if (la < threshold && valorDoVale > la * 2.0) {
-                    tauEstimado = metade
-                    valorDoVale = la
-                }
-            }
-        }
-
-        // --- 5. Interpolacao parabolica -----------------------------------------
+        // --- 4. Interpolacao parabolica -----------------------------------------
         // A resolucao inteira de tau limitaria a precisao: entre 41 Hz e 42 Hz a
         // grade salta quase 1%, ou seja, uns 17 cents. A parabola sobre os tres
         // pontos vizinhos e o que da a resolucao de fracao de amostra.
@@ -191,6 +210,25 @@ class YinDetector(
 
         /** ~-46 dBFS. Abaixo disso o sinal e tratado como silencio. */
         const val DEFAULT_MIN_RMS = 0.005f
+
+        /**
+         * Quanto o vale aceito pode ser mais fundo que o melhor vale da curva.
+         *
+         * Com 1,0 so o vale mais fundo seria aceito, e a busca pegaria o
+         * ultimo multiplo do periodo em vez do fundamental. Com 1,5 o vale do
+         * periodo real (0,126 contra um piso de 0,120) entra, e os multiplos
+         * mais profundos ficam de fora.
+         */
+        private const val FATOR_VALE_MAIS_FUNDO = 1.5
+
+        /**
+         * Ate onde o melhor vale da curva ainda conta como "ha periodo aqui".
+         *
+         * Sem este teto, o limiar relativo aceitaria qualquer coisa no ruido
+         * branco (melhor vale 0,93) e a janela curta aceitaria o E1 fora de
+         * faixa (0,233). Nota real com 5% de ruido fica em 0,121 ou menos.
+         */
+        private const val TETO_DE_PERIODO = 0.18
 
         /**
          * Janela padrao: 85 ms a 48 kHz. Medido em 0,06 cents de erro em sinal
