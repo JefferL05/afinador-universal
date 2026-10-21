@@ -1,7 +1,13 @@
+// FlowRow ainda é experimental no foundation — estabilizou só na Compose 1.8.
+@file:OptIn(ExperimentalLayoutApi::class)
+
 package com.afinu.app.feature.chords
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -34,7 +40,6 @@ import com.afinu.app.core.util.ChordNames
 import com.afinu.app.core.util.ChordQuality
 import com.afinu.app.core.util.ChordShape
 import com.afinu.app.core.util.Fretboard
-import com.afinu.app.core.util.MusicTheory
 import com.afinu.app.ui.components.ChipRow
 
 /**
@@ -134,6 +139,18 @@ fun ChordsScreen(
 
         Spacer(Modifier.height(8.dp))
 
+        // As notas do acorde, na altura em que soam, e tocáveis. Vem logo
+        // abaixo do nome porque é a resposta a "o que é isso?": o nome sozinho
+        // não diz quais notas formam o acorde, e é justamente isso que o
+        // iniciante não sabe.
+        ChordNotesStrip(
+            tones = state.tones,
+            playingMidi = state.playingMidi,
+            onPlay = viewModel::tocarNota,
+        )
+
+        Spacer(Modifier.height(16.dp))
+
         if (state.searching) {
             Text(
                 text = "…",
@@ -148,7 +165,12 @@ fun ChordsScreen(
             )
         } else {
             state.shapes.forEach { shape ->
-                ShapeCard(shape)
+                ShapeCard(
+                    shape = shape,
+                    rootSemitones = state.rootSemitones,
+                    playingMidi = state.playingMidi,
+                    onPlay = viewModel::tocarNota,
+                )
                 Spacer(Modifier.height(10.dp))
             }
         }
@@ -158,7 +180,12 @@ fun ChordsScreen(
 }
 
 @Composable
-private fun ShapeCard(shape: ChordShape) {
+private fun ShapeCard(
+    shape: ChordShape,
+    rootSemitones: Int,
+    playingMidi: Int?,
+    onPlay: (Int) -> Unit,
+) {
     Card(
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
@@ -180,11 +207,23 @@ private fun ShapeCard(shape: ChordShape) {
             )
             Spacer(Modifier.width(16.dp))
             Column {
-                shape.notes.forEach { nota ->
-                    Text(
-                        text = MusicTheory.labelOf(nota),
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
+                // As notas da pegada também são tocáveis, e não só as do
+                // acorde: estas são as alturas **reais** que o músico vai
+                // ouvir, com a oitava que a pegada produz. É nelas que ele
+                // afina o ouvido.
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    shape.notes.forEach { nota ->
+                        NoteChip(
+                            midi = nota,
+                            isRoot = (((nota % 12) + 12) % 12) ==
+                                (((rootSemitones % 12) + 12) % 12),
+                            isPlaying = nota == playingMidi,
+                            onClick = { onPlay(nota) },
+                        )
+                    }
                 }
                 if (shape.barres > 0) {
                     Text(

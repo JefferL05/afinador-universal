@@ -5,20 +5,25 @@ import android.media.AudioFormat
 import android.media.AudioTrack
 import android.util.Log
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlin.math.PI
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
 /**
- * Toca o bip curto de confirmação quando a nota entra na zona "no ponto".
+ * Toca um tom curto na frequência indicada.
  *
- * Usa `MODE_STATIC` com um buffer reaproveitado: o bip tem duração fixa, então
+ * Usa `MODE_STATIC` com um buffer reaproveitado: o tom tem duração fixa, então
  * só a frequência muda entre chamadas. O envelope de rampa é obrigatório —
  * uma senóide que começa e termina em amplitude cheia produz um clique
  * audível, que é o primeiro defeito que o usuário percebe em um afinador.
+ *
+ * ## Por que não é um singleton
+ * Cada dono de áudio tem a sua instância: o afinador, a tela de acordes e o
+ * widget do launcher tocam em contextos diferentes, e uma track compartilhada
+ * faria um deles cortar o som do outro no meio — exatamente a "interrupção
+ * inesperada" que um app de instrumento não pode ter. O widget, que é um
+ * receiver, precisa soltar a sua depois de cada toque.
  */
-@Singleton
 class ConfirmTonePlayer @Inject constructor() {
 
     companion object {
@@ -31,6 +36,16 @@ class ConfirmTonePlayer @Inject constructor() {
 
     private var track: AudioTrack? = null
     private var pcm: ShortArray = ShortArray(0)
+
+    /**
+     * Bytes que a track atual comporta.
+     *
+     * Uma track em `MODE_STATIC` nasce com o buffer dimensionado e não cresce:
+     * escrever mais do que cabe faz o `write` falhar **em silêncio**, e o tom
+     * simplesmente não sai. Como o mesmo player toca bip de 110 ms e nota de
+     * 1,2 s, a track é refeita quando o tom seguinte não couber.
+     */
+    private var bufferBytes = 0
 
     /**
      * Toca um tom curto na frequência indicada.
@@ -64,9 +79,14 @@ class ConfirmTonePlayer @Inject constructor() {
                 .toShort()
         }
 
+        val tamanhoBytes = pcm.size * 2
+
         try {
             val existente = track
-            if (existente != null && existente.state == AudioTrack.STATE_INITIALIZED) {
+            if (existente != null &&
+                existente.state == AudioTrack.STATE_INITIALIZED &&
+                bufferBytes >= tamanhoBytes
+            ) {
                 existente.stop()
                 existente.reloadStaticData()
                 existente.write(pcm, 0, pcm.size)
@@ -75,7 +95,9 @@ class ConfirmTonePlayer @Inject constructor() {
                 return
             }
 
-            val tamanhoBytes = pcm.size * 2
+            // O tom não cabe na track atual: ela é refeita com o buffer novo.
+            existente?.release()
+            bufferBytes = tamanhoBytes
             track = AudioTrack.Builder()
                 .setAudioAttributes(
                     AudioAttributes.Builder()
@@ -115,5 +137,6 @@ class ConfirmTonePlayer @Inject constructor() {
             it.release()
         }
         track = null
+        bufferBytes = 0
     }
 }

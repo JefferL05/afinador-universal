@@ -35,7 +35,10 @@
 
     <!-- Abas -->
     <string name="tab_tuner">Afinador</string>
-    <string name="tab_metronome">Metrônomo</string>
+    <!-- Rótulo da aba. Abreviado porque seis abas em 360 dp não cabem com
+         "Metrônomo" inteiro: o nome completo é anunciado pelo leitor de tela
+         (ver Destination.accessibilityLabelRes) e aparece no título da tela. -->
+    <string name="tab_metronome">Metr.</string>
     <string name="tab_notes">Notas</string>
     <string name="tab_chords">Acordes</string>
     <string name="tab_settings">Ajustes</string>
@@ -127,6 +130,10 @@
     <string name="chords_root">Acorde</string>
     <string name="chords_quality">Tipo</string>
     <string name="chords_no_shapes">Nenhuma forma cabível nesta afinação.</string>
+    <string name="chords_notes">Notas do acorde</string>
+    <string name="chords_notes_hint">Toque numa nota para ouvir</string>
+    <string name="chords_root_note">fundamental</string>
+    <string name="chords_play_note">Tocar %1$s</string>
     <string name="fretboard">Braço</string>
     <string name="fretboard_note">Nota</string>
     <string name="recorder">Gravar ideia</string>

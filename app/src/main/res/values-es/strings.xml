@@ -32,7 +32,7 @@
 
     <!-- Pestañas -->
     <string name="tab_tuner">Afinador</string>
-    <string name="tab_metronome">Metrónomo</string>
+    <string name="tab_metronome">Metr.</string>
     <string name="tab_notes">Notas</string>
     <string name="tab_chords">Acordes</string>
     <string name="tab_settings">Ajustes</string>
@@ -124,6 +124,10 @@
     <string name="chords_root">Acorde</string>
     <string name="chords_quality">Tipo</string>
     <string name="chords_no_shapes">Ninguna forma encaja con esta afinación.</string>
+    <string name="chords_notes">Notas del acorde</string>
+    <string name="chords_notes_hint">Toca una nota para oírla</string>
+    <string name="chords_root_note">fundamental</string>
+    <string name="chords_play_note">Tocar %1$s</string>
     <string name="fretboard">Mástil</string>
     <string name="fretboard_note">Nota</string>
     <string name="recorder">Grabar idea</string>

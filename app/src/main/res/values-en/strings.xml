@@ -32,7 +32,7 @@
 
     <!-- Tabs -->
     <string name="tab_tuner">Tuner</string>
-    <string name="tab_metronome">Metronome</string>
+    <string name="tab_metronome">Metro.</string>
     <string name="tab_notes">Notes</string>
     <string name="tab_chords">Chords</string>
     <string name="tab_settings">Settings</string>
@@ -124,6 +124,10 @@
     <string name="chords_root">Chord</string>
     <string name="chords_quality">Type</string>
     <string name="chords_no_shapes">No shape fits this tuning.</string>
+    <string name="chords_notes">Chord notes</string>
+    <string name="chords_notes_hint">Tap a note to hear it</string>
+    <string name="chords_root_note">root</string>
+    <string name="chords_play_note">Play %1$s</string>
     <string name="fretboard">Neck</string>
     <string name="fretboard_note">Note</string>
     <string name="recorder">Record idea</string>

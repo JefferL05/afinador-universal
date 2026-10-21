@@ -2,6 +2,7 @@ package com.afinu.app.feature.chords
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.afinu.app.core.audio.ConfirmTonePlayer
 import com.afinu.app.core.model.TuningPreset
 import com.afinu.app.core.util.Capo
 import com.afinu.app.core.util.ChordFinder
@@ -9,11 +10,17 @@ import com.afinu.app.core.util.ChordNames
 import com.afinu.app.core.util.ChordQuality
 import com.afinu.app.core.util.ChordShape
 import com.afinu.app.core.util.ChordSpec
+import com.afinu.app.core.util.ChordTone
+import com.afinu.app.core.util.ChordTones
 import com.afinu.app.core.util.FretPosition
 import com.afinu.app.core.util.Fretboard
+import com.afinu.app.core.util.MusicTheory
+import com.afinu.app.data.catalog.InstrumentCatalog
 import com.afinu.app.data.prefs.SettingsRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,6 +41,14 @@ data class ChordsUiState(
     /** Nota destacada no braço, para o fretboard. */
     val highlightSemitones: Int? = null,
     val fretPositions: List<FretPosition> = emptyList(),
+    /** A4 de referência do usuário, em Hz. As notas tocam na altura dele. */
+    val a4Hz: Float = MusicTheory.DEFAULT_A4_HZ,
+    /** Volume das notas, o mesmo do bip de confirmação. */
+    val toneVolume: Float = 0.45f,
+    /** As notas do acorde, na altura em que soam no instrumento. */
+    val tones: List<ChordTone> = emptyList(),
+    /** A nota que está soando agora, para o destaque. */
+    val playingMidi: Int? = null,
 ) {
     val chordName: String get() = ChordNames.rootLabel(rootSemitones) + quality.suffix
 
@@ -57,25 +72,33 @@ data class ChordsUiState(
 @HiltViewModel
 class ChordsViewModel @Inject constructor(
     settingsRepository: SettingsRepository,
+    private val tonePlayer: ConfirmTonePlayer,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ChordsUiState())
     val uiState: StateFlow<ChordsUiState> = _uiState.asStateFlow()
 
+    /** Job do destaque da nota que está soando. */
+    private var playbackJob: Job? = null
+
     init {
         viewModelScope.launch {
             settingsRepository.settings.collect { prefs ->
-                val instrument = com.afinu.app.data.catalog.InstrumentCatalog.find(prefs.instrumentId)
+                val instrument = InstrumentCatalog.find(prefs.instrumentId)
                 val tuning = instrument.tunings.firstOrNull { it.id == prefs.tuningId }
                     ?: instrument.defaultTuning
                 val efetiva = Capo.effectiveOrUnshifted(tuning, prefs.capoFret)
 
                 val mudou = _uiState.value.tuning?.id != efetiva.id
                 _uiState.update {
-                    it.copy(
-                        tuning = efetiva,
-                        capoFret = prefs.capoFret,
-                        instrumentName = instrument.displayName,
+                    comNotas(
+                        it.copy(
+                            tuning = efetiva,
+                            capoFret = prefs.capoFret,
+                            instrumentName = instrument.displayName,
+                            a4Hz = prefs.a4Hz,
+                            toneVolume = prefs.confirmToneVolume,
+                        ),
                     )
                 }
                 if (mudou) buscar(_uiState.value.rootSemitones, _uiState.value.quality)
@@ -84,13 +107,20 @@ class ChordsViewModel @Inject constructor(
     }
 
     fun setRoot(semitones: Int) {
-        _uiState.update { it.copy(rootSemitones = semitones) }
+        // A forma antiga não vale mais: as notas mostradas saem dela, e
+        // mantê-las até a busca terminar mostraria as notas do acorde anterior
+        // embaixo do nome do acorde novo.
+        _uiState.update {
+            comNotas(it.copy(rootSemitones = semitones, shapes = emptyList()))
+        }
         buscar(semitones, _uiState.value.quality)
         destacar(semitones)
     }
 
     fun setQuality(quality: ChordQuality) {
-        _uiState.update { it.copy(quality = quality) }
+        _uiState.update {
+            comNotas(it.copy(quality = quality, shapes = emptyList()))
+        }
         buscar(_uiState.value.rootSemitones, quality)
     }
 
@@ -106,6 +136,58 @@ class ChordsViewModel @Inject constructor(
         }
         _uiState.update { it.copy(highlightSemitones = semitones, fretPositions = posicoes) }
     }
+
+    /**
+     * Toca uma nota do acorde.
+     *
+     * ## Por que a frequência sai do A4 das preferências
+     * Com o afinador em 432 Hz, o Dó que o app mostra é o Dó de 432. Tocar
+     * 440 fixo seria o app se contradizendo com o resto de si mesmo — o
+     * músico ouviria uma nota e leria outra.
+     *
+     * ## Por que o som não duplica
+     * O player reusa a mesma track: cada toque substitui o anterior, como um
+     * piano. Tocar duas vezes seguidas dá dois sons, um atrás do outro, e
+     * nunca dois sons sobrepostos.
+     */
+    fun tocarNota(midi: Int) {
+        val estado = _uiState.value
+        val hz = MusicTheory.frequencyOf(midi, estado.a4Hz)
+        if (!hz.isFinite() || hz <= 0f) return
+
+        tonePlayer.play(
+            frequencyHz = hz,
+            durationMs = NOTA_DURACAO_MS,
+            volume = estado.toneVolume,
+        )
+
+        _uiState.update { it.copy(playingMidi = midi) }
+        playbackJob?.cancel()
+        playbackJob = viewModelScope.launch {
+            delay(NOTA_DURACAO_MS.toLong() - 100L)
+            // Só limpa se ainda for a mesma nota: tocar outra no meio já trocou
+            // o destaque, e o timer antigo não pode apagar o novo.
+            _uiState.update {
+                if (it.playingMidi == midi) it.copy(playingMidi = null) else it
+            }
+        }
+    }
+
+    /**
+     * Recalcula as notas do acorde a partir do estado.
+     *
+     * Elas dependem de quatro coisas ao mesmo tempo: a tônica, a qualidade, a
+     * forma encontrada e a afinação. Qualquer uma delas muda a lista — e a
+     * forma só chega depois da busca, que é assíncrona.
+     */
+    private fun comNotas(estado: ChordsUiState): ChordsUiState = estado.copy(
+        tones = ChordTones.of(
+            rootSemitones = estado.rootSemitones,
+            quality = estado.quality,
+            shape = estado.shapes.firstOrNull(),
+            tuning = estado.tuning,
+        ),
+    )
 
     private fun buscar(root: Int, quality: ChordQuality) {
         val tuning = _uiState.value.tuning ?: return
@@ -124,7 +206,21 @@ class ChordsViewModel @Inject constructor(
                     spec = ChordSpec(rootMidi = 60 + root, quality = quality),
                 )
             }
-            _uiState.update { it.copy(shapes = formas, searching = false) }
+            _uiState.update { comNotas(it.copy(shapes = formas, searching = false)) }
         }
+    }
+
+    override fun onCleared() {
+        playbackJob?.cancel()
+        tonePlayer.release()
+        super.onCleared()
+    }
+
+    private companion object {
+        /**
+         * 0,9 s: tempo de sobra para ouvir a nota e afinar contra ela, sem
+         * deixar um tom soando no aparelho depois que o usuário já entendeu.
+         */
+        const val NOTA_DURACAO_MS = 900
     }
 }

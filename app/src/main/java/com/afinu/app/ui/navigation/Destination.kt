@@ -26,6 +26,15 @@ enum class Destination(
     val route: String,
     @StringRes val labelRes: Int,
     val icon: ImageVector,
+    /**
+     * O nome por extenso, para o leitor de tela.
+     *
+     * A barra tem seis abas em 360 dp: o rótulo **visível** precisa caber, e
+     * "Metrônomo" não cabe. Mas o TalkBack anuncia o rótulo, e "Metr." lido em
+     * voz alta é pior que inútil. Então o visível é curto e o anunciado é
+     * inteiro — a informação não se perde, ela muda de lugar.
+     */
+    @StringRes val accessibilityLabelRes: Int = labelRes,
 ) {
     AFINADOR(
         route = "afinador",
@@ -35,6 +44,7 @@ enum class Destination(
     METRONOME(
         route = "metronomo",
         labelRes = R.string.tab_metronome,
+        accessibilityLabelRes = R.string.metronome,
         icon = Icons.Default.Timer,
     ),
     NOTAS(

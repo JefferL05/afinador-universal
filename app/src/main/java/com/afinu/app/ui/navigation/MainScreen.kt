@@ -12,6 +12,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -72,11 +74,21 @@ fun MainScreen(
                             // `labelSmall` devolve o espaço que o `labelMedium`
                             // padrão do Material 3 não tem, e o corte por
                             // reticências vira exceção em vez de rotina.
+                            //
+                            // O rótulo visível pode ser abreviado ("Metr."), mas
+                            // o leitor de tela anuncia o nome inteiro:
+                            // `clearAndSetSemantics` troca o texto lido pela
+                            // descrição sem mexer no estado de seleção do item,
+                            // que vive no nó de cima.
+                            val nomeCompleto = stringResource(destino.accessibilityLabelRes)
                             Text(
                                 text = stringResource(destino.labelRes),
                                 style = MaterialTheme.typography.labelSmall,
                                 maxLines = 1,
                                 softWrap = false,
+                                modifier = Modifier.clearAndSetSemantics {
+                                    contentDescription = nomeCompleto
+                                },
                             )
                         },
                     )

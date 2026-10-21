@@ -3,6 +3,8 @@ package com.afinu.app.widget
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
 import com.afinu.app.core.audio.ConfirmTonePlayer
 import dagger.hilt.android.AndroidEntryPoint
@@ -47,6 +49,14 @@ class ReferenceToneReceiver : BroadcastReceiver() {
             frequencyHz = frequencia,
             durationMs = TONE_DURATION_MS,
             volume = TONE_VOLUME,
+        )
+
+        // O player é uma instância por dono — não é singleton — então quem
+        // toca é quem solta. Sem esta liberação, cada toque do widget deixaria
+        // um AudioTrack vivo no processo.
+        Handler(Looper.getMainLooper()).postDelayed(
+            { tonePlayer.release() },
+            TONE_DURATION_MS + 200L,
         )
     }
 
