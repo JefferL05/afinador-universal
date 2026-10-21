@@ -33,15 +33,12 @@
     <string name="chords">Acordes</string>
     <string name="settings">Ajustes</string>
 
-    <!-- Abas -->
-    <string name="tab_tuner">Afinador</string>
-    <!-- Rótulo da aba. Abreviado porque seis abas em 360 dp não cabem com
-         "Metrônomo" inteiro: o nome completo é anunciado pelo leitor de tela
-         (ver Destination.accessibilityLabelRes) e aparece no título da tela. -->
-    <string name="tab_metronome">Metr.</string>
-    <string name="tab_notes">Notas</string>
-    <string name="tab_chords">Acordes</string>
-    <string name="tab_settings">Ajustes</string>
+    <!-- Abas da barra inferior. Quatro, não seis: seis abas em 360 dp dão 60 dp
+         por aba, e nenhum rótulo com duas sílabas cabia inteiro. -->
+    <string name="tab_cromatico">Cromático</string>
+    <string name="tab_violao">Violão</string>
+    <string name="tab_afinacoes">Afinações</string>
+    <string name="tab_ferramentas">Ferramentas</string>
 
     <!-- Ajustes: seções -->
     <string name="reference">Referência</string>
@@ -133,7 +130,6 @@
     <string name="chords_notes">Notas do acorde</string>
     <string name="chords_notes_hint">Toque numa nota para ouvir</string>
     <string name="chords_root_note">fundamental</string>
-    <string name="chords_play_note">Tocar %1$s</string>
     <string name="fretboard">Braço</string>
     <string name="fretboard_note">Nota</string>
     <string name="recorder">Gravar ideia</string>
@@ -146,7 +142,6 @@
     <string name="recorder_delete">Apagar gravação</string>
     <string name="barre_hint">Use batente</string>
     <string name="recorder_hint">Grave uma ideia e volte quando quiser.</string>
-    <string name="tab_recorder">Gravar</string>
     <string name="onboarding_title">O afinador que funciona sem internet</string>
     <string name="onboarding_body">Abrimos o microfone por meio segundo, lemos a nota e mostramos a quanto você está fora. Sem cadastro, sem anúncio, sem enviar nada para lugar nenhum.</string>
     <string name="onboarding_mic_title">Por que o microfone</string>
@@ -164,4 +159,68 @@
     <string name="widget_capo">capo %1$d</string>
     <string name="widget_a4">A4 %1$d Hz</string>
     <string name="widget_string_row">%1$d  %2$s</string>
+
+    <!-- Tela de Violão -->
+    <string name="headstock_ear_training">Tocar Cordas (Modo Auditivo)</string>
+    <string name="headstock_ear_training_hint">Ciclo sequencial de 6ª a 1ª corda</string>
+    <string name="headstock_playing">Tocando</string>
+    <string name="headstock_auto">Auto Afinador</string>
+    <string name="headstock_auto_hint">Detectar corda</string>
+    <string name="headstock_loop">Loop Contínuo</string>
+    <string name="headstock_loop_on">Ativado</string>
+    <string name="headstock_loop_off">Desativado</string>
+    <string name="headstock_active_string">%1$dª Corda</string>
+    <string name="headstock_target_deviation">Alvo: %1$s • Desvio: %2$s</string>
+
+    <!-- Tela Cromática -->
+    <string name="chromatic_auto">Automático</string>
+    <string name="chromatic_manual">Manual</string>
+    <string name="chromatic_in_tune">Afinado</string>
+    <string name="chromatic_listening">Ouvindo</string>
+    <string name="chromatic_waiting">Ouvindo…</string>
+    <string name="chromatic_cents">Desvio cents</string>
+    <string name="chromatic_real_frequency">Frequência real</string>
+    <string name="chromatic_strings">Cordas do instrumento</string>
+    <string name="chromatic_noise_filter">Filtro de Ruído</string>
+    <string name="chromatic_noise_filter_on">Ativo (estúdio)</string>
+    <string name="chromatic_emit_tone">Emitir Tom</string>
+    <string name="chromatic_emit_tone_hint">Ouvir guia</string>
+    <string name="chromatic_mic_off">Microfone desligado</string>
+
+    <!-- Biblioteca de afinações -->
+    <string name="library_tunings">Afinações</string>
+    <string name="library_chords">Acordes</string>
+    <string name="library_notes">Notas</string>
+    <string name="library_search_hint">Buscar afinações, artistas…</string>
+    <string name="library_count">%1$d afinações</string>
+    <string name="library_all">Todas</string>
+    <string name="library_empty">Nenhuma afinação encontrada.</string>
+    <string name="library_in_use">Em uso</string>
+    <string name="library_preview">Ouvir</string>
+    <string name="library_tension">Tensão: %1$s</string>
+    <string name="library_apply">Aplicar</string>
+    <string name="library_create">Criar afinação customizada</string>
+
+    <!-- Ferramentas -->
+    <string name="tools_metronome">Metrônomo</string>
+    <string name="tools_tones">Tons</string>
+    <string name="tools_recorder">Gravar</string>
+    <string name="tools_tempo_moderate">Moderato</string>
+    <string name="tools_bpm">BPM</string>
+    <string name="tools_signature">%1$d/4 • %2$s</string>
+    <string name="tools_signature_label">Fórmula</string>
+    <string name="tools_division_label">Divisão</string>
+    <string name="tools_tap">Toque no ritmo</string>
+    <string name="tools_tap_tempo">Tap Tempo</string>
+    <string name="tools_start">Iniciar metrônomo</string>
+    <string name="tools_stop">Parar metrônomo</string>
+    <string name="tools_reference_tone">Tom de Referência</string>
+    <string name="tools_reference_tone_hint">Calibração acústica e afinação de referência</string>
+    <string name="tools_hertz">Hertz (Hz)</string>
+    <string name="tools_wave_sine">Senoidal</string>
+    <string name="tools_wave_triangle">Triangular</string>
+    <string name="tools_wave_square">Quadrada</string>
+    <string name="tools_hear">Ouvir</string>
+
+    <string name="headstock_no_string">Nenhuma corda</string>
 </resources>

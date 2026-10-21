@@ -67,6 +67,40 @@ data class TunerUiState(
 
     /** Contagem de afinações corretas na sessão, para a tela de treino. */
     val inTuneCount: Int = 0,
+
+    /**
+     * O estado de cada corda, para o painel de cravelhas do modo violão.
+     *
+     * ## Por que o app precisa guardar isso
+     * O microfone ouve uma corda por vez. Mas quem afina quer ver as seis ao
+     * mesmo tempo: qual já está no ponto, qual precisa ser apertada, qual
+     * ainda nem foi tocada. A leitura corrente é de uma corda só, e o resto
+     * da informação vive aqui.
+     *
+     * A entrada de uma corda só muda quando há leitura para ela, então uma
+     * corda que ninguém tocou fica sem entrada — que é o estado correto, e
+     * não um bug.
+     */
+    val stringStatus: Map<Int, StringStatus> = emptyMap(),
+
+    /**
+     * Detectar a corda automaticamente?
+     *
+     * Desligado, o app afina a corda que o usuário escolheu, e não o que ele
+     * tocar. É o que se quer quando há microfone ambiente tocando junto.
+     */
+    val autoDetect: Boolean = true,
+
+    /**
+     * Tocar as cordas em sequência, sem parar?
+     *
+     * O ciclo vai da 6ª à 1ª, que é a ordem em que se afina um instrumento
+     * novo. Com o loop ligado, ele recomeça ao terminar.
+     */
+    val loopContinuo: Boolean = false,
+
+    /** A sequência de referência está tocando agora? */
+    val tocandoSequencia: Boolean = false,
 ) {
     val isListening: Boolean get() = micState == MicState.Listening
 
@@ -86,6 +120,21 @@ data class TunerUiState(
     val isChromatic: Boolean
         get() = instrument?.family == InstrumentFamily.FREEFORM
 }
+
+/**
+ * O estado de uma corda, como o painel de cravelhas mostra.
+ *
+ * @param midi a nota alvo da corda, com a afinação e o capo já aplicados.
+ * @param cents o desvio medido na última vez que a corda foi ouvida.
+ * @param frequencyHz a frequência medida naquela leitura.
+ * @param inTune a corda estava dentro da zona de tolerância.
+ */
+data class StringStatus(
+    val midi: Int,
+    val cents: Float,
+    val frequencyHz: Float,
+    val inTune: Boolean,
+)
 
 sealed interface MicState {
     /** Microfone desligado. */

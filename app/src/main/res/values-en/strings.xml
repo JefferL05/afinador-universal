@@ -31,11 +31,10 @@
     <string name="settings">Settings</string>
 
     <!-- Tabs -->
-    <string name="tab_tuner">Tuner</string>
-    <string name="tab_metronome">Metro.</string>
-    <string name="tab_notes">Notes</string>
-    <string name="tab_chords">Chords</string>
-    <string name="tab_settings">Settings</string>
+    <string name="tab_cromatico">Chromatic</string>
+    <string name="tab_violao">Guitar</string>
+    <string name="tab_afinacoes">Tunings</string>
+    <string name="tab_ferramentas">Tools</string>
 
     <!-- Settings: sections -->
     <string name="reference">Reference</string>
@@ -127,7 +126,6 @@
     <string name="chords_notes">Chord notes</string>
     <string name="chords_notes_hint">Tap a note to hear it</string>
     <string name="chords_root_note">root</string>
-    <string name="chords_play_note">Play %1$s</string>
     <string name="fretboard">Neck</string>
     <string name="fretboard_note">Note</string>
     <string name="recorder">Record idea</string>
@@ -140,7 +138,6 @@
     <string name="recorder_delete">Delete recording</string>
     <string name="barre_hint">Uses a barre</string>
     <string name="recorder_hint">Record an idea and come back to it later.</string>
-    <string name="tab_recorder">Record</string>
     <string name="onboarding_title">The tuner that works offline</string>
     <string name="onboarding_body">We open the microphone for half a second, read the note and show how far off you are. No sign-up, no ads, nothing sent anywhere.</string>
     <string name="onboarding_mic_title">Why the microphone</string>
@@ -158,4 +155,68 @@
     <string name="widget_capo">capo %1$d</string>
     <string name="widget_a4">A4 %1$d Hz</string>
     <string name="widget_string_row">%1$d  %2$s</string>
+
+    <!-- Guitar screen -->
+    <string name="headstock_ear_training">Play Strings (Ear Training)</string>
+    <string name="headstock_ear_training_hint">Sequential cycle, 6th to 1st string</string>
+    <string name="headstock_playing">Playing</string>
+    <string name="headstock_auto">Auto Tuner</string>
+    <string name="headstock_auto_hint">Detect string</string>
+    <string name="headstock_loop">Continuous Loop</string>
+    <string name="headstock_loop_on">On</string>
+    <string name="headstock_loop_off">Off</string>
+    <string name="headstock_active_string">String %1$d</string>
+    <string name="headstock_target_deviation">Target: %1$s • Deviation: %2$s</string>
+
+    <!-- Chromatic screen -->
+    <string name="chromatic_auto">Automatic</string>
+    <string name="chromatic_manual">Manual</string>
+    <string name="chromatic_in_tune">In tune</string>
+    <string name="chromatic_listening">Listening</string>
+    <string name="chromatic_waiting">Listening…</string>
+    <string name="chromatic_cents">Cents deviation</string>
+    <string name="chromatic_real_frequency">Real frequency</string>
+    <string name="chromatic_strings">Instrument strings</string>
+    <string name="chromatic_noise_filter">Noise Filter</string>
+    <string name="chromatic_noise_filter_on">On (studio)</string>
+    <string name="chromatic_emit_tone">Emit Tone</string>
+    <string name="chromatic_emit_tone_hint">Hear guide</string>
+    <string name="chromatic_mic_off">Microphone off</string>
+
+    <!-- Tuning library -->
+    <string name="library_tunings">Tunings</string>
+    <string name="library_chords">Chords</string>
+    <string name="library_notes">Notes</string>
+    <string name="library_search_hint">Search tunings, artists…</string>
+    <string name="library_count">%1$d tunings</string>
+    <string name="library_all">All</string>
+    <string name="library_empty">No tuning found.</string>
+    <string name="library_in_use">In use</string>
+    <string name="library_preview">Hear</string>
+    <string name="library_tension">Tension: %1$s</string>
+    <string name="library_apply">Apply</string>
+    <string name="library_create">Create custom tuning</string>
+
+    <!-- Tools -->
+    <string name="tools_metronome">Metronome</string>
+    <string name="tools_tones">Tones</string>
+    <string name="tools_recorder">Record</string>
+    <string name="tools_tempo_moderate">Moderato</string>
+    <string name="tools_bpm">BPM</string>
+    <string name="tools_signature">%1$d/4 • %2$s</string>
+    <string name="tools_signature_label">Signature</string>
+    <string name="tools_division_label">Division</string>
+    <string name="tools_tap">Tap along</string>
+    <string name="tools_tap_tempo">Tap Tempo</string>
+    <string name="tools_start">Start metronome</string>
+    <string name="tools_stop">Stop metronome</string>
+    <string name="tools_reference_tone">Reference Tone</string>
+    <string name="tools_reference_tone_hint">Acoustic calibration and reference pitch</string>
+    <string name="tools_hertz">Hertz (Hz)</string>
+    <string name="tools_wave_sine">Sine</string>
+    <string name="tools_wave_triangle">Triangle</string>
+    <string name="tools_wave_square">Square</string>
+    <string name="tools_hear">Hear</string>
+
+    <string name="headstock_no_string">No string</string>
 </resources>

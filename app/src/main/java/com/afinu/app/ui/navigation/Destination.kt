@@ -4,73 +4,59 @@ import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.LibraryMusic
-import androidx.compose.material.icons.filled.Mic
-import androidx.compose.material.icons.filled.MusicNote
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.afinu.app.R
 
 /**
- * Destinos do bottom bar.
+ * As quatro abas do app.
  *
- * A ordem não é alfabética: vai do que se usa o tempo todo para o que se
- * configura uma vez. O afinador fica primeiro e é o destino inicial, porque o
- * app existe para afinar.
+ * ## Por que quatro e não seis
+ * A barra é a única coisa visível o tempo todo, e seis abas em 360 dp dão
+ * 60 dp por aba: qualquer rótulo com duas sílabas era cortado. Quatro abas
+ * dão 90 dp cada, e o nome cabe inteiro.
  *
- * Cada aba é um destino **independente**, com ViewModel próprio. É o que
- * garante que trocar de aba e voltar não reinicie a captura de áudio: sair da
- * tela do afinador dispara `onCleared`, que libera o microfone na hora.
+ * A reorganização não perdeu nada: o que era aba virou seção dentro de uma das
+ * quatro, e as ferramentas de afinação que eram uma tela só passaram a ser
+ * parte de quem as usa.
  */
 enum class Destination(
     val route: String,
     @StringRes val labelRes: Int,
     val icon: ImageVector,
-    /**
-     * O nome por extenso, para o leitor de tela.
-     *
-     * A barra tem seis abas em 360 dp: o rótulo **visível** precisa caber, e
-     * "Metrônomo" não cabe. Mas o TalkBack anuncia o rótulo, e "Metr." lido em
-     * voz alta é pior que inútil. Então o visível é curto e o anunciado é
-     * inteiro — a informação não se perde, ela muda de lugar.
-     */
-    @StringRes val accessibilityLabelRes: Int = labelRes,
 ) {
-    AFINADOR(
-        route = "afinador",
-        labelRes = R.string.tab_tuner,
+    /** Afinador cromático: qualquer nota, sem corda de referência. */
+    CROMATICO(
+        route = "cromatico",
+        labelRes = R.string.tab_cromatico,
         icon = Icons.Default.GraphicEq,
     ),
-    METRONOME(
-        route = "metronomo",
-        labelRes = R.string.tab_metronome,
-        accessibilityLabelRes = R.string.metronome,
-        icon = Icons.Default.Timer,
+
+    /** Modo violão: uma aba por corda, com o braço à vista. */
+    VIOLAO(
+        route = "violao",
+        labelRes = R.string.tab_violao,
+        icon = Icons.Default.Tune,
     ),
-    NOTAS(
-        route = "notas",
-        labelRes = R.string.tab_notes,
-        icon = Icons.Default.MusicNote,
-    ),
-    ACORDES(
-        route = "acordes",
-        labelRes = R.string.tab_chords,
+
+    /** Biblioteca de afinações, acordes e notas de referência. */
+    AFINACOES(
+        route = "afinacoes",
+        labelRes = R.string.tab_afinacoes,
         icon = Icons.Default.LibraryMusic,
     ),
-    GRAVAR(
-        route = "gravar",
-        labelRes = R.string.tab_recorder,
-        icon = Icons.Default.Mic,
-    ),
-    AJUSTES(
-        route = "ajustes",
-        labelRes = R.string.tab_settings,
-        icon = Icons.Default.Settings,
+
+    /** Metrônomo, tom de referência e gravação. */
+    FERRAMENTAS(
+        route = "ferramentas",
+        labelRes = R.string.tab_ferramentas,
+        icon = Icons.Default.Speed,
     );
 
     companion object {
         /** Rota inicial: abrir o app já afina, sem passar por menu nenhum. */
-        val START: Destination = AFINADOR
+        val START: Destination = VIOLAO
 
         fun fromRoute(route: String?): Destination =
             entries.firstOrNull { it.route == route } ?: START

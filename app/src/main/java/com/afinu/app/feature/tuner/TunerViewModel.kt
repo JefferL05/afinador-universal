@@ -13,6 +13,7 @@ import com.afinu.app.core.model.InstrumentFamily
 import com.afinu.app.core.model.TuningPreset
 import com.afinu.app.core.permission.MicPermission
 import com.afinu.app.core.util.Capo
+import com.afinu.app.core.util.MusicTheory
 import com.afinu.app.data.catalog.InstrumentCatalog
 import com.afinu.app.data.prefs.AppSettings
 import com.afinu.app.data.prefs.SettingsRepository
@@ -20,6 +21,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.currentCoroutineContext
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -78,6 +80,9 @@ class TunerViewModel @Inject constructor(
 
     /** A última nota exibida era esta? Controla o "note just changed". */
     private var lastNoteKey: String? = null
+
+    /** O ciclo de cordas está tocando? */
+    private var sequenciaJob: Job? = null
 
     init {
         observeSettings()
@@ -301,6 +306,22 @@ class TunerViewModel @Inject constructor(
             guided
         }
 
+        // O estado de cada corda, para o painel de cravelhas. Só a corda que
+        // foi ouvida muda; as outras guardam a última leitura, que é o que o
+        // jogador precisa ver: "a 3ª já está no ponto, a 4ª ainda não".
+        val statusDasCordas = if (reading != null && stringIndex != null) {
+            _uiState.value.stringStatus + (
+                stringIndex to StringStatus(
+                    midi = currentEffectiveTuning.midiNotes.getOrNull(stringIndex) ?: reading.midi,
+                    cents = reading.cents,
+                    frequencyHz = reading.frequencyHz,
+                    inTune = inTune,
+                )
+                )
+        } else {
+            _uiState.value.stringStatus
+        }
+
         _uiState.update {
             it.copy(
                 reading = reading,
@@ -310,6 +331,7 @@ class TunerViewModel @Inject constructor(
                 justGotInTune = enteredTune,
                 guidedStringIndex = advanced,
                 inTuneCount = if (enteredTune) it.inTuneCount + 1 else it.inTuneCount,
+                stringStatus = statusDasCordas,
             )
         }
     }
@@ -346,10 +368,90 @@ class TunerViewModel @Inject constructor(
         _uiState.update { it.copy(guidedStringIndex = null) }
     }
 
+    // --- Tom de referência ------------------------------------------------------
+
+    /**
+     * Toca a nota alvo de uma corda, na altura da afinação em uso.
+     *
+     * É o botão de "ouvir como deve soar": quem está afinando de ouvido precisa
+     * de uma referência, e a nota que soa tem de ser a nota **desta**
+     * afinação, com o capo e o A4 do usuário dentro.
+     */
+    fun tocarReferencia(midi: Int) {
+        val hz = MusicTheory.frequencyOf(midi, _uiState.value.a4Hz)
+        if (!hz.isFinite() || hz <= 0f) return
+        confirmTone.play(
+            frequencyHz = hz,
+            durationMs = DURACAO_REFERENCIA_MS,
+            volume = _uiState.value.confirmToneVolume,
+        )
+    }
+
+    /**
+     * Toca as cordas uma a uma, da 6ª à 1ª.
+     *
+     * A ordem é a de afinar um instrumento novo: a corda mais grave primeiro,
+     * porque é a que serve de referência para todas as outras. Quem está
+     * aprendendo a afinar de ouvido precisa ouvir a ordem, não as notas
+     * soltas.
+     */
+    fun tocarSequencia() {
+        sequenciaJob?.cancel()
+        sequenciaJob = viewModelScope.launch {
+            _uiState.update { it.copy(tocandoSequencia = true) }
+            try {
+                do {
+                    for (midi in currentEffectiveTuning.midiNotes) {
+                        tocarReferencia(midi)
+                        delay(INTERVALO_ENTRE_CORDAS_MS)
+                    }
+                } while (_uiState.value.loopContinuo)
+            } finally {
+                _uiState.update { it.copy(tocandoSequencia = false) }
+            }
+        }
+    }
+
+    /** Interrompe o ciclo de cordas. */
+    fun pararSequencia() {
+        sequenciaJob?.cancel()
+        sequenciaJob = null
+        _uiState.update { it.copy(tocandoSequencia = false) }
+    }
+
+    fun setAutoDetect(ligado: Boolean) {
+        _uiState.update { it.copy(autoDetect = ligado) }
+    }
+
+    fun setLoopContinuo(ligado: Boolean) {
+        _uiState.update { it.copy(loopContinuo = ligado) }
+    }
+
     override fun onCleared() {
         // Sem isto o ícone de microfone do sistema fica ligado depois de sair.
         audioCapture.stop()
+        sequenciaJob?.cancel()
         confirmTone.release()
         super.onCleared()
+    }
+
+    private companion object {
+        /**
+         * Duração do tom de referência: 1,2 s.
+         *
+         * Tempo de sobra para ouvir a nota e afinar contra ela, e curto o
+         * bastante para o músico não perder o compasso enquanto ela soa.
+         */
+        const val DURACAO_REFERENCIA_MS = 1_200
+
+        /**
+         * Intervalo entre uma corda e outra no ciclo de referência.
+         *
+         * 900 ms: o tom de 1,2 s ainda está soando quando o próximo começa,
+         * e o músico ouve a corda seguinte já sobre a anterior. É assim que se
+         * afina de ouvido — uma corda de cada vez, com a anterior ainda na
+         * cabeça.
+         */
+        const val INTERVALO_ENTRE_CORDAS_MS = 900L
     }
 }

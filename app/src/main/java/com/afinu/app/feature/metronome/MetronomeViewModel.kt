@@ -1,5 +1,6 @@
 package com.afinu.app.feature.metronome
 
+import android.os.SystemClock
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,6 +18,8 @@ data class MetronomeUiState(
     val isRunning: Boolean = false,
     /** Tempo do compasso atual, de 1 a [MetronomeConfig.beatsPerBar]. */
     val accentBeat: Int = 1,
+    /** Quantos toques o "tap tempo" já registrou. */
+    val tapCount: Int = 0,
 )
 
 /**
@@ -38,6 +41,20 @@ class MetronomeViewModel @Inject constructor(
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(MetronomeUiState())
+
+    /** Os instantes dos toques do "tap tempo". */
+    private var toquesTap = mutableListOf<Long>()
+
+    /**
+     * Quanto tempo um toque continua valendo para o "tap tempo".
+     *
+     * Dois segundos e meio: o suficiente para o intervalo de um tempo lento
+     * (60 BPM), e curto o bastante para que uma batida solta muito depois não
+     * contamine a média.
+     */
+    private companion object {
+        const val JANELA_TAP_MS = 2_500L
+    }
     val uiState: StateFlow<MetronomeUiState> = _uiState.asStateFlow()
 
     private var tickJob: Job? = null
@@ -77,6 +94,41 @@ class MetronomeViewModel @Inject constructor(
             bpm = MetronomeTiming.snapBpm(bpm),
         )
         aplicar(config)
+    }
+
+    /**
+     * Marca o andamento no ritmo em que o usuário bate.
+     *
+     * ## Como funciona
+     * Guardam-se os instantes dos toques. Com dois ou mais, o andamento é o
+     * inverso do intervalo médio entre eles. Depois de três toques, o valor
+     * deixa de oscilar — e é aí que ele fica confiável.
+     *
+     * Passados alguns segundos sem toque, a sequência é esquecida: uma
+     * batida isolada muito depois da outra não é um andamento, e tratá-la
+     * como se fosse zeraria o metrônomo no meio da música.
+     */
+    fun tapTempo() {
+        val agora = SystemClock.elapsedRealtime()
+        // Toques antigos demais não contam: uma batida isolada muito depois da
+        // outra não é um andamento, e tratá-la como se fosse zeraria o
+        // metrônomo no meio da música.
+        val recentes = toquesTap.filter { agora - it <= JANELA_TAP_MS }
+        val novos = (recentes + agora).toMutableList()
+        toquesTap = novos
+
+        _uiState.update { it.copy(tapCount = novos.size) }
+        if (novos.size < 2) return
+
+        val intervalos = novos.zipWithNext { a, b -> b - a }
+        val medio = intervalos.sum() / intervalos.size
+        if (medio <= 0L) return
+
+        val bpm = (60_000.0 / medio).toFloat().coerceIn(
+            MetronomeConfig.MIN_BPM.toFloat(),
+            MetronomeConfig.MAX_BPM.toFloat(),
+        )
+        setBpm(bpm)
     }
 
     fun setBeatsPerBar(beats: Int) = aplicar(_uiState.value.config.copy(beatsPerBar = beats))

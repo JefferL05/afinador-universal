@@ -1,64 +1,105 @@
 package com.afinu.app.ui.theme
 
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Shapes
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.unit.dp
 
-private val DarkColors = darkColorScheme(
-    primary = BrandBlueDark,
-    onPrimary = SurfaceLight,
-    secondary = TunedGreenDark,
-    background = DialBackgroundDark,
-    onBackground = TextPrimaryDark,
-    surface = SurfaceDark,
-    onSurface = TextPrimaryDark,
-    surfaceVariant = SurfaceVariantDark,
-    onSurfaceVariant = TextSecondaryDark,
-    error = OffRedDark,
+/**
+ * A paleta do Precision Studio Dark.
+ *
+ * O Material 3 completa os papéis que o design não nomeia (inverseSurface,
+ * scrim, surfaceTint) a partir dos que foram declarados, e é por isso que só
+ * os papéis visíveis estão aqui: o resto sai de graça e sai certo.
+ */
+private val StudioColors = darkColorScheme(
+    primary = StudioGreen,
+    onPrimary = StudioOnGreen,
+    primaryContainer = StudioGreenContainer,
+    onPrimaryContainer = StudioOnGreenContainer,
+    inversePrimary = StudioGreenContainer,
+
+    secondary = StudioCyan,
+    onSecondary = StudioOnCyan,
+    secondaryContainer = StudioCyanContainer,
+    onSecondaryContainer = StudioOnCyanContainer,
+
+    tertiary = StudioAmber,
+    onTertiary = StudioOnAmber,
+    tertiaryContainer = StudioAmberContainer,
+    onTertiaryContainer = StudioOnAmberContainer,
+
+    error = StudioError,
+    onError = StudioOnError,
+    errorContainer = StudioErrorContainer,
+    onErrorContainer = StudioOnErrorContainer,
+
+    background = StudioCanvas,
+    onBackground = StudioOnSurface,
+    surface = StudioCanvas,
+    onSurface = StudioOnSurface,
+    surfaceVariant = StudioSurfaceVariant,
+    onSurfaceVariant = StudioOnSurfaceVariant,
+    surfaceTint = StudioGreenContainer,
+    inverseSurface = StudioOnSurface,
+    inverseOnSurface = StudioSurfaceHighest,
+
+    surfaceContainerLowest = StudioSurfaceLowest,
+    surfaceContainerLow = StudioSurfaceLow,
+    surfaceContainer = StudioSurface,
+    surfaceContainerHigh = StudioSurfaceHigh,
+    surfaceContainerHighest = StudioSurfaceHighest,
+    surfaceBright = StudioSurfaceHighest,
+    surfaceDim = StudioSurfaceLowest,
+
+    outline = StudioOutline,
+    outlineVariant = StudioOutlineVariant,
+    scrim = StudioCanvas,
 )
 
-private val LightColors = lightColorScheme(
-    primary = BrandBlue,
-    onPrimary = SurfaceLight,
-    secondary = TunedGreen,
-    background = DialBackgroundLight,
-    onBackground = TextPrimaryLight,
-    surface = SurfaceLight,
-    onSurface = TextPrimaryLight,
-    surfaceVariant = SurfaceVariantLight,
-    onSurfaceVariant = TextSecondaryLight,
-    error = OffRed,
+/**
+ * As formas do design.
+ *
+ * O arredondamento base é de 8 px: é o raio de um pedal de guitarra e de um
+ * chassi de rack. Controles arredondados de menos parecem_button de
+ * computador; de mais, brinquedo.
+ */
+val StudioShapes = Shapes(
+    extraSmall = RoundedCornerShape(4.dp),
+    small = RoundedCornerShape(8.dp),
+    medium = RoundedCornerShape(12.dp),
+    large = RoundedCornerShape(16.dp),
+    extraLarge = RoundedCornerShape(24.dp),
 )
 
+/**
+ * O tema do app.
+ *
+ * ## Por que não tem modo claro
+ * O app é usado com o instrumento no colo, em ambiente escuro, muitas vezes
+ * com o olho focado demais no medidor para que a luz do celular incomode.
+ * Um tema claro seria ofuscante. Não há versão clara por decisão de projeto.
+ *
+ * ## Por que não tem cor dinâmica
+ * Com Material You, o palette vem do papel de parede. Aqui o verde significa
+ * "afinou" e o ciano significa "esta é a nota" — nenhum dos dois pode
+ * depender do wallpaper de quem abriu o app.
+ *
+ * O parâmetro [isSystemInDarkTheme] é mantido apenas para a assinatura
+ * compatível com quem chama; o tema é escuro nos dois casos.
+ */
 @Composable
 fun AfinadorTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    /**
-     * Material You: a paleta segue o papel de parede do usuário (Android 12+).
-     * Desligado, o app usa a identidade própria — o verde de "afinou" não pode
-     * mudar de significado conforme o wallpaper.
-     */
-    dynamicColor: Boolean = true,
+    @Suppress("UNUSED_PARAMETER") isSystemInDarkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {
-    val context = LocalContext.current
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S ->
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
-
     MaterialTheme(
-        colorScheme = colorScheme,
+        colorScheme = StudioColors,
         typography = AfinadorTypography,
+        shapes = StudioShapes,
         content = content,
     )
 }

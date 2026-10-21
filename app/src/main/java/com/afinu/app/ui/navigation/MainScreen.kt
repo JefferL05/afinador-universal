@@ -1,110 +1,83 @@
 package com.afinu.app.ui.navigation
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.clearAndSetSemantics
-import androidx.compose.ui.semantics.contentDescription
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.afinu.app.feature.chords.ChordsScreen
-import com.afinu.app.feature.metronome.MetronomeScreen
-import com.afinu.app.feature.notes.NotesCardScreen
-import com.afinu.app.feature.recorder.RecorderScreen
+import com.afinu.app.feature.metronome.ToolsScreen
 import com.afinu.app.feature.settings.SettingsScreen
-import com.afinu.app.feature.tuner.TunerScreen
+import com.afinu.app.feature.settings.TuningLibraryScreen
+import com.afinu.app.feature.tuner.ChromaticTunerScreen
+import com.afinu.app.feature.tuner.HeadstockTunerScreen
+import com.afinu.app.ui.components.TuneMasterBottomBar
+import com.afinu.app.ui.components.TuneMasterHeader
 
 /**
- * Casca da aplicação: bottom bar + conteúdo.
+ * A casca do aplicativo: cabeçalho, barra de navegação e o conteúdo.
  *
  * ## Por que a barra fica embaixo e não em cima
  * Ela é usada com uma mão só, enquanto a outra segura o instrumento. Em cima,
- * o polegar não alcança. Em palco, olhar para baixo também é mais rápido do que
- * levantar os olhos para o topo.
+ * o polegar não alcança. Em palco, olhar para baixo também é mais rápido do
+ * que levantar os olhos para o topo.
  *
  * ## Por que o afinador não fica em "dentro" da navegação
- * A tela de afinação é o produto. A barra existe para as outras quatro telas
- * acessíveis *a partir dela*, e não o contrário. Por isso o grafo de navegação
- * tem o afinador como entrada e as demais como irmãs.
+ * A tela de afinação é o produto. A barra existe para as outras três telas
+ * acessíveis *a partir dela*, e não o contrário.
  */
 @Composable
 fun MainScreen(
     onRequestPermission: () -> Unit,
     navController: NavHostController = rememberNavController(),
+    shellViewModel: AppShellViewModel = hiltViewModel(),
 ) {
     val backStackEntry by navController.currentBackStackEntryAsState()
     val rotaAtual = backStackEntry?.destination?.route
     val destinoAtual = Destination.fromRoute(rotaAtual)
+    val a4Hz by shellViewModel.a4Hz.collectAsStateWithLifecycle()
 
     Scaffold(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        topBar = {
+            TuneMasterHeader(
+                section = stringResource(destinoAtual.labelRes),
+                a4Hz = a4Hz,
+            )
+        },
         bottomBar = {
-            NavigationBar {
-                Destination.entries.forEach { destino ->
-                    NavigationBarItem(
-                        selected = destino == destinoAtual,
-                        onClick = {
-                            if (destino != destinoAtual) {
-                                navController.navigate(destino.route) {
-                                    // Trocar de aba não deve empilhar telas:
-                                    // voltar do Metrônomo tem que ir para o
-                                    // Afinador, não para uma pilha infinita.
-                                    popUpTo(Destination.START.route) { saveState = true }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
-                            }
-                        },
-                        icon = { Icon(destino.icon, contentDescription = null) },
-                        label = {
-                            // Uma linha, sempre. Sem isto o rótulo quebra no
-                            // meio da palavra ("Afinad / or", "Metrôn / omo")
-                            // porque seis abas em 360 dp cabem em ~60 dp cada.
-                            // `labelSmall` devolve o espaço que o `labelMedium`
-                            // padrão do Material 3 não tem, e o corte por
-                            // reticências vira exceção em vez de rotina.
-                            //
-                            // O rótulo visível pode ser abreviado ("Metr."), mas
-                            // o leitor de tela anuncia o nome inteiro:
-                            // `clearAndSetSemantics` troca o texto lido pela
-                            // descrição sem mexer no estado de seleção do item,
-                            // que vive no nó de cima.
-                            val nomeCompleto = stringResource(destino.accessibilityLabelRes)
-                            Text(
-                                text = stringResource(destino.labelRes),
-                                style = MaterialTheme.typography.labelSmall,
-                                maxLines = 1,
-                                softWrap = false,
-                                modifier = Modifier.clearAndSetSemantics {
-                                    contentDescription = nomeCompleto
-                                },
-                            )
-                        },
-                    )
-                }
-            }
+            TuneMasterBottomBar(
+                atual = destinoAtual,
+                onSelect = { destino ->
+                    if (destino != destinoAtual) {
+                        navController.navigate(destino.route) {
+                            // Trocar de aba não deve empilhar telas: voltar do
+                            // Metrônomo tem que ir para o Afinador, não para uma
+                            // pilha infinita.
+                            popUpTo(Destination.START.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
+            )
         },
     ) { padding ->
-        // O `Scaffold` do Material 3 já calcula os insets do sistema — barra de
-        // status em cima, barra de navegação embaixo — e devolve tudo pronto em
-        // `padding`. Antes só o rodapé era aplicado, então todo título desenhava
-        // por baixo da barra de status: "Violão" ficava em cima do relógio e
-        // "Trocar" em cima do wifi em todas as seis telas. Com targetSdk 35 o
-        // edge-to-edge é imposto pelo sistema, não é uma escolha do tema.
-        //
-        // Nenhuma tela tem `TopAppBar` nem `Scaffold` próprio, então aplicar o
-        // padding completo não duplica nada.
+        // O `Scaffold` já calcula os insets do sistema — barra de status em
+        // cima, barra de navegação embaixo — e devolve tudo pronto em
+        // `padding`. Com targetSdk 35 o edge-to-edge é imposto pelo sistema.
         NavHost(
             navController = navController,
             startDestination = Destination.START.route,
@@ -112,14 +85,31 @@ fun MainScreen(
                 .fillMaxSize()
                 .padding(padding),
         ) {
-            composable(Destination.AFINADOR.route) {
-                TunerScreen(onRequestPermission = onRequestPermission)
+            composable(Destination.CROMATICO.route) {
+                ChromaticTunerScreen(onRequestPermission = onRequestPermission)
             }
-            composable(Destination.METRONOME.route) { MetronomeScreen() }
-            composable(Destination.NOTAS.route) { NotesCardScreen() }
-            composable(Destination.ACORDES.route) { ChordsScreen() }
-            composable(Destination.GRAVAR.route) { RecorderScreen() }
-            composable(Destination.AJUSTES.route) { SettingsScreen() }
+            composable(Destination.VIOLAO.route) {
+                HeadstockTunerScreen(onRequestPermission = onRequestPermission)
+            }
+            composable(Destination.AFINACOES.route) {
+                TuningLibraryScreen(
+                    onOpenSettings = {
+                        navController.navigate(ROTA_AJUSTES)
+                    },
+                )
+            }
+            composable(Destination.FERRAMENTAS.route) {
+                ToolsScreen()
+            }
+            // Os Ajustes não são uma aba: são um destravo dentro da biblioteca
+            // de afinações, que é onde o capo, a referência de altura e os
+            // favoritos já vivem. Uma quinta aba roubaria espaço das quatro.
+            composable(ROTA_AJUSTES) {
+                SettingsScreen()
+            }
         }
     }
 }
+
+/** A rota dos Ajustes, alcançada pelo botão de filtro da biblioteca. */
+const val ROTA_AJUSTES = "ajustes"
