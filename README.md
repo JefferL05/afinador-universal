@@ -434,12 +434,54 @@ feature/
   onboarding/OnboardingScreen, OnboardingViewModel
 widget/         TunerWidgetProvider, ReferenceToneReceiver
 ui/accessibility/ Helpers de semantica e alvos de toque
-core/util/   MusicTheory, Capo, Fretboard, ChordFinder, ChordNames
+core/util/   MusicTheory, Capo, Fretboard, ChordFinder, ChordNames, ChordTones
 ui/
-  navigation/MainScreen (bottom bar), Destination
-  components/ChipRow
-  theme/     Material 3 + Material You
+  navigation/MainScreen (casca), Destination, AppShellViewModel
+  components/  TuneMasterHeader, TuneMasterBottomBar, StudioComponents, ChipRow
+  theme/     Precision Studio Dark: paleta fixa, Inter + JetBrains Mono
 ```
+
+## A identidade visual
+
+**Precision Studio Dark**: o app é escurecido de propósito — afina-se com o
+instrumento no colo, sob luz fraca, e um tema claro seria ofuscante. Não há
+versão clara.
+
+A paleta é **fixa**, sem cor dinâmica (Material You). A cor dinâmica troca o
+palette pelo papel de parede, e aqui isso seria um erro: o **verde** significa
+"afinou" e o **ciano** significa "esta é a nota", e nenhum dos dois pode
+depender do wallpaper de quem abriu o app.
+
+| Papel | Cor | Significado |
+|---|---|---|
+| Fundo | `#0F131C` | a tela absorve luz |
+| Superfície | `#1C2029` → `#31353F` | degraus de elevação |
+| Verde | `#00E676` | no ponto, dentro de ±1,5 cent |
+| Ciano | `#00E3FD` | a nota detectada, e os números |
+| Âmbar | `#FFBA7D` | o desvio, o que ainda pede ajuste |
+| Vermelho | `#FF3D71` | longe demais para sugerir ação |
+
+A profundidade vem do **tom**, nunca de sombra projetada — em fundo escuro,
+sombra aparece como halo sujo. O que separa um plano do outro é um fio de
+1 px com 8% de branco.
+
+Duas famílias, com uma regra: **Inter** para notas, títulos e navegação;
+**JetBrains Mono** para todo número. O monoespaçado não é enfeite — durante
+uma afinação o número muda a cada quadro, e num fonte proporcional o texto
+sobe e desce a cada troca, e o olho perde a posição.
+
+## As quatro abas
+
+**Cromático · Violão · Afinações · Ferramentas**
+
+Seis abas em 360 dp dão 60 dp por aba, e nenhum rótulo com duas sílabas
+cabia inteiro. Quatro dão 90 dp cada.
+
+O que era aba virou seção dentro de uma das quatro: os acordes e o cartão de
+notas dividem **Afinações**; o gravador e o tom de referência dividem
+**Ferramentas**; e os Ajustes ficaram atrás do botão de engrenagem da
+biblioteca, ao lado da busca — são o lugar de onde se mexe no capo e na
+referência de altura.
 
 Regras que o código segue:
 
