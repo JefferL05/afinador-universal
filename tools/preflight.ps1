@@ -77,12 +77,72 @@ function Arquivos([string]$ext) {
 Titulo '1. Delimitadores balanceados'
 
 function Get-CodigoLimpo([string]$t) {
-    $t = [regex]::Replace($t, '(?s)"""(.*?)"""', { param($m) '"' + ('x' * $m.Value.Length) + '"' })
-    $t = [regex]::Replace($t, '(?s)/\*.*?\*/', { param($m) ' ' * $m.Value.Length })
-    $t = [regex]::Replace($t, '(?m)//.*$', '')
-    $t = [regex]::Replace($t, '"(?:[^"\\\r\n]|\\.)*"', { param($m) '"' + ('x' * $m.Value.Length) + '"' })
-    $t = [regex]::Replace($t, "'(?:[^'\\\r\n]|\\.)'", { param($m) "'" })
-    return $t
+    # Percorre o texto uma vez, de fora para dentro, e devolve só o código:
+    # sem comentários e sem o conteúdo das strings.
+    #
+    # ## Por que não por regex
+    # A versão anterior removia comentários antes das strings, e aí um `/`
+    # dentro de uma string abria um bloco de comentário falso. O caso real é o
+    # mime type "audio/*": o `/` da string virava início de comentário, o
+    # bloco engolia o código até o próximo `*/`, e a contagem de chaves dava
+    # negativo em arquivos que **compilam**. Falso positivo no portão de
+    # qualidade é pior que nenhum portão: ele treina a gente a ignorar o
+    # portão.
+    $sb = [System.Text.StringBuilder]::new($t.Length)
+    $i = 0
+    $n = $t.Length
+    while ($i -lt $n) {
+        $c = $t[$i]
+        $prox = if ($i + 1 -lt $n) { $t[$i + 1] } else { [char]0 }
+
+        if ($c -eq '/' -and $prox -eq '/') {
+            # Comentário de linha: consome até o fim da linha.
+            while ($i -lt $n -and $t[$i] -ne "`n") { $i++ }
+            continue
+        }
+        if ($c -eq '/' -and $prox -eq '*') {
+            # Comentário de bloco: consome até o `*/`.
+            $i += 2
+            while ($i -lt $n -and -not ($t[$i] -eq '*' -and $i + 1 -lt $n -and $t[$i + 1] -eq '/')) { $i++ }
+            $i += 2
+            continue
+        }
+        if ($c -eq '"' -and $prox -eq '"' -and $i + 2 -lt $n -and $t[$i + 2] -eq '"') {
+            # String bruta: aspas triplas. Consome até a próxima sequência.
+            $i += 3
+            while ($i -lt $n) {
+                if ($t[$i] -eq '"' -and $i + 2 -lt $n -and $t[$i + 1] -eq '"' -and $t[$i + 2] -eq '"') { $i += 3; break }
+                $i++
+            }
+            continue
+        }
+        if ($c -eq '"') {
+            # String normal: consome até o aspas de fechamento, pulando escapes.
+            $i++
+            while ($i -lt $n) {
+                if ($t[$i] -eq '\') { $i += 2; continue }
+                if ($t[$i] -eq '"') { $i++; break }
+                if ($t[$i] -eq "`n") { break }
+                $i++
+            }
+            continue
+        }
+        if ($c -eq "'") {
+            # Caractere: 'a' ou '\n'. Kotlin não tem string de aspas simples,
+            # então uma aspa solta no código é erro de digitação mesmo.
+            $i++
+            while ($i -lt $n) {
+                if ($t[$i] -eq '\') { $i += 2; continue }
+                if ($t[$i] -eq "'") { $i++; break }
+                if ($t[$i] -eq "`n") { break }
+                $i++
+            }
+            continue
+        }
+        $null = $sb.Append($c)
+        $i++
+    }
+    return $sb.ToString()
 }
 
 $p = 0; $ch = 0; $co = 0
