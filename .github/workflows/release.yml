@@ -6,6 +6,16 @@ name: Release
 on:
   push:
     tags: [ 'v*' ]
+  # Disparo manual: permite gerar a release sem criar uma tag, o que é o
+  # caminho de teste antes de cortar versão. Uma tag que não sai é fácil de
+  # apagar; uma release publicada, não.
+  workflow_dispatch:
+
+# Uma release por vez. Duas execuções concorrentes brigariam pela mesma pasta
+# de cache do Gradle e pelo mesmo nome de artefato.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
 
 permissions:
   contents: write
@@ -90,11 +100,20 @@ jobs:
           echo "Assinatura verificada."
 
       - name: Checksums
+        id: checksums
         run: |
           set -euo pipefail
           cd app/build/outputs
           sha256sum apk/release/*.apk bundle/release/*.aab > SHA256SUMS.txt
           cat SHA256SUMS.txt
+
+          # O corpo da release NAO roda shell: `$(cat ...)` sairia literal no
+          # texto publicado. O conteúdo tem de viajar pelo output do passo.
+          {
+            echo 'checksums<<EOF_CHECKSUMS'
+            cat SHA256SUMS.txt
+            echo 'EOF_CHECKSUMS'
+          } >> "$GITHUB_OUTPUT"
 
       - name: Mapa de ofuscacao
         # Sem o mapping.txt, um crashReport do release nao pode ser
@@ -118,7 +137,7 @@ jobs:
             ## Checksums
 
             ```
-            $(cat app/build/outputs/SHA256SUMS.txt)
+            ${{ steps.checksums.outputs.checksums }}
             ```
 
             ## Para subir na Play Store
