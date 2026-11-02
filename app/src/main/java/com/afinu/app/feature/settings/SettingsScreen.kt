@@ -263,12 +263,17 @@ private fun CapoSection(state: SettingsUiState, vm: SettingsViewModel) {
         )
         Spacer(Modifier.height(8.dp))
 
-        Capo.frets.forEach { fret ->
-            FilterChip(
-                selected = state.capoFret == fret,
-                onClick = { vm.setCapoFret(fret) },
-                label = { Text(if (fret == 0) stringResource(R.string.no_capo) else fret.toString()) },
-            )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Capo.frets.forEach { fret ->
+                FilterChip(
+                    selected = state.capoFret == fret,
+                    onClick = { vm.setCapoFret(fret) },
+                    label = { Text(if (fret == 0) stringResource(R.string.no_capo) else fret.toString()) },
+                )
+            }
         }
 
         Spacer(Modifier.height(12.dp))
@@ -457,7 +462,7 @@ private fun AboutSection() {
 // ---------------------------------------------------------------------------
 
 @Composable
-private fun SaveFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
+internal fun SaveFavoriteDialog(onDismiss: () -> Unit, onConfirm: (String) -> Unit) {
     var nome by remember { mutableStateOf("") }
     AlertDialog(
         onDismissRequest = onDismiss,

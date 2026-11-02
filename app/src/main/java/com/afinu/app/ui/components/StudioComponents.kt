@@ -27,7 +27,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -91,7 +93,10 @@ fun StudioActionRow(
             .fillMaxWidth()
             .then(
                 if (onClick != null) {
-                    Modifier.clickable(onClick = onClick)
+                    Modifier.clickable(
+                        role = Role.Button,
+                        onClick = onClick,
+                    )
                 } else {
                     Modifier
                 },
@@ -238,7 +243,7 @@ fun StudioDotSwitch(
 ) {
     Box(
         modifier = modifier
-            .size(28.dp)
+            .size(36.dp)
             .clip(CircleShape)
             .background(
                 if (ligado) {
@@ -247,14 +252,17 @@ fun StudioDotSwitch(
                     MaterialTheme.colorScheme.surfaceContainerHighest
                 },
             )
-            .clickable(onClick = onToggle)
+            .clickable(
+                role = Role.Switch,
+                onClick = onToggle,
+            )
             .semantics { contentDescription = descricao },
         contentAlignment = Alignment.Center,
     ) {
         if (ligado) {
             Box(
                 modifier = Modifier
-                    .size(10.dp)
+                    .size(12.dp)
                     .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.onPrimary),
             )
@@ -298,8 +306,14 @@ fun StudioSegmentedControl(
                             Color.Transparent
                         },
                     )
-                    .clickable { onSelect(indice) }
-                    .padding(vertical = 9.dp),
+                    .clickable(
+                        role = Role.Tab,
+                        onClick = { onSelect(indice) },
+                    )
+                    .semantics {
+                        selected = ativo
+                    }
+                    .padding(vertical = 12.dp),
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically,
             ) {

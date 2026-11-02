@@ -37,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -75,6 +76,7 @@ fun TuningLibraryScreen(
     var busca by remember { mutableStateOf("") }
     var secao by remember { mutableIntStateOf(0) }
     var categoria by remember { mutableStateOf("") }
+    var showSaveDialog by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -254,6 +256,7 @@ fun TuningLibraryScreen(
                 emUso = afinacao.id == state.tuning.id,
                 a4Hz = state.a4Hz,
                 onApply = { viewModel.selectTuning(afinacao.id) },
+                onPreview = { viewModel.tocarPrevia(afinacao) },
             )
             Spacer(Modifier.height(12.dp))
         }
@@ -265,7 +268,10 @@ fun TuningLibraryScreen(
         StudioCard(
             modifier = Modifier
                 .fillMaxWidth()
-                .clickable { },
+                .clickable(
+                    role = Role.Button,
+                    onClick = { showSaveDialog = true },
+                ),
         ) {
             Row(
                 modifier = Modifier
@@ -277,20 +283,30 @@ fun TuningLibraryScreen(
                 Icon(
                     imageVector = Icons.Default.Add,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
+                    tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(18.dp),
                 )
                 Spacer(Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.library_create).uppercase(),
                     style = LabelCaps,
-                    color = MaterialTheme.colorScheme.onPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                 )
             }
         }
 
         Spacer(Modifier.height(32.dp))
             }
+        }
+
+        if (showSaveDialog) {
+            SaveFavoriteDialog(
+                onDismiss = { showSaveDialog = false },
+                onConfirm = { nome ->
+                    viewModel.saveCurrentAsFavorite(nome)
+                    showSaveDialog = false
+                },
+            )
         }
     }
 }
@@ -304,6 +320,7 @@ private fun TuningCard(
     emUso: Boolean,
     a4Hz: Float,
     onApply: () -> Unit,
+    onPreview: () -> Unit,
 ) {
     val perfil = remember(tuning.id) { perfilDe(tuning) }
 
@@ -351,9 +368,13 @@ private fun TuningCard(
                     contentDescription = stringResource(R.string.library_preview),
                     tint = MaterialTheme.colorScheme.secondary,
                     modifier = Modifier
-                        .size(20.dp)
+                        .size(48.dp)
                         .clip(CircleShape)
-                        .clickable { },
+                        .clickable(
+                            role = Role.Button,
+                            onClick = onPreview,
+                        )
+                        .padding(12.dp),
                 )
             }
 
@@ -389,7 +410,10 @@ private fun TuningCard(
                         modifier = Modifier
                             .clip(CircleShape)
                             .background(MaterialTheme.colorScheme.primary)
-                            .clickable(onClick = onApply)
+                            .clickable(
+                                role = Role.Button,
+                                onClick = onApply,
+                            )
                             .padding(horizontal = 16.dp, vertical = 9.dp),
                     )
                 }

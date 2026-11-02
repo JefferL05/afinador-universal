@@ -55,6 +55,9 @@ fun MainScreen(
             TuneMasterHeader(
                 section = stringResource(destinoAtual.labelRes),
                 a4Hz = a4Hz,
+                onOpenSettings = {
+                    navController.navigate(ROTA_AJUSTES)
+                },
             )
         },
         bottomBar = {
@@ -89,7 +92,16 @@ fun MainScreen(
                 ChromaticTunerScreen(onRequestPermission = onRequestPermission)
             }
             composable(Destination.VIOLAO.route) {
-                HeadstockTunerScreen(onRequestPermission = onRequestPermission)
+                HeadstockTunerScreen(
+                    onRequestPermission = onRequestPermission,
+                    onOpenTuningLibrary = {
+                        navController.navigate(Destination.AFINACOES.route) {
+                            popUpTo(Destination.START.route) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    },
+                )
             }
             composable(Destination.AFINACOES.route) {
                 TuningLibraryScreen(

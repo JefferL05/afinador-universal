@@ -45,6 +45,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -78,6 +79,7 @@ import java.util.Locale
 fun HeadstockTunerScreen(
     onRequestPermission: () -> Unit,
     modifier: Modifier = Modifier,
+    onOpenTuningLibrary: () -> Unit = {},
     viewModel: TunerViewModel = hiltViewModel(),
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
@@ -97,7 +99,7 @@ fun HeadstockTunerScreen(
         InstrumentRow(
             nomeInstrumento = state.instrument?.displayName ?: "",
             rotuloAfinacao = state.tuningLabel ?: "",
-            onClick = { },
+            onClick = onOpenTuningLibrary,
         )
 
         Spacer(Modifier.height(12.dp))
@@ -116,6 +118,7 @@ fun HeadstockTunerScreen(
             status = state.stringStatus,
             cordaAtiva = state.detectedStringIndex,
             a4Hz = state.a4Hz,
+            onTocarNota = { midi -> viewModel.tocarReferencia(midi) },
         )
 
         Spacer(Modifier.height(20.dp))
@@ -145,6 +148,7 @@ fun HeadstockTunerScreen(
                 subtitle = stringResource(R.string.headstock_auto_hint),
                 tint = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.weight(1f),
+                onClick = { viewModel.setAutoDetect(!state.autoDetect) },
                 trailing = {
                     StudioDotSwitch(
                         ligado = state.autoDetect,
@@ -161,6 +165,7 @@ fun HeadstockTunerScreen(
                 ),
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.weight(1f),
+                onClick = { viewModel.setLoopContinuo(!state.loopContinuo) },
                 trailing = {
                     StudioDotSwitch(
                         ligado = state.loopContinuo,
@@ -200,7 +205,10 @@ private fun InstrumentRow(
         StudioCard(
             modifier = Modifier
                 .weight(1f)
-                .clickable(onClick = onClick),
+                .clickable(
+                    role = Role.Button,
+                    onClick = onClick,
+                ),
         ) {
             Row(
                 modifier = Modifier
@@ -264,6 +272,8 @@ private fun PegAtivoBanner(
         "—" to ""
     }
 
+    val previewDesc = stringResource(R.string.library_preview)
+
     StudioCard {
         Row(
             modifier = Modifier
@@ -326,20 +336,27 @@ private fun PegAtivoBanner(
             Spacer(Modifier.width(8.dp))
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(48.dp)
                     .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary)
-                    .clickable(enabled = midi != null) { midi?.let(onTocarReferencia) }
+                    .background(
+                        if (midi != null) MaterialTheme.colorScheme.primary
+                        else MaterialTheme.colorScheme.surfaceContainerHighest,
+                    )
+                    .clickable(
+                        enabled = midi != null,
+                        role = Role.Button,
+                    ) { midi?.let(onTocarReferencia) }
                     .semantics {
-                        contentDescription = "Tocar a nota de referência"
+                        contentDescription = previewDesc
                     },
                 contentAlignment = Alignment.Center,
             ) {
                 Icon(
                     imageVector = Icons.Default.VolumeUp,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(22.dp),
+                    tint = if (midi != null) MaterialTheme.colorScheme.onPrimary
+                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
                 )
             }
         }
@@ -361,6 +378,7 @@ private fun HeadstockStage(
     status: Map<Int, StringStatus>,
     cordaAtiva: Int?,
     a4Hz: Float,
+    onTocarNota: (Int) -> Unit,
 ) {
     if (midiNotes.isEmpty()) return
 
@@ -401,6 +419,7 @@ private fun HeadstockStage(
                         status = status[indice],
                         ativo = cordaAtiva == indice,
                         a4Hz = a4Hz,
+                        onClick = { onTocarNota(midiNotes[indice]) },
                     )
                 }
             }
@@ -414,6 +433,7 @@ private fun HeadstockStage(
                         status = status[indice],
                         ativo = cordaAtiva == indice,
                         a4Hz = a4Hz,
+                        onClick = { onTocarNota(midiNotes[indice]) },
                     )
                 }
             }
@@ -520,6 +540,7 @@ private fun PegCard(
     status: StringStatus?,
     ativo: Boolean,
     a4Hz: Float,
+    onClick: () -> Unit,
 ) {
     val (letra, oitava) = notaEmPartes(midi)
     val cents = status?.cents
@@ -535,6 +556,13 @@ private fun PegCard(
     StudioCard(
         modifier = Modifier
             .padding(vertical = 4.dp)
+            .clickable(
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .semantics {
+                contentDescription = "${letra}${oitava}, ${if (cents != null) formatarCents(cents) else ""}"
+            }
             .border(
                 width = if (ativo) 2.dp else 1.dp,
                 color = if (ativo) {

@@ -191,7 +191,10 @@ private fun RecordingButton(
                 },
             ),
         ) {
-            Box(contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center,
+            ) {
                 Icon(
                     imageVector = if (isRecording) Icons.Default.Stop else Icons.Default.PlayArrow,
                     contentDescription = null,

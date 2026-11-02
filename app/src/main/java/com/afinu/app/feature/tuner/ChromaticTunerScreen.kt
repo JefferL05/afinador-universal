@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -97,8 +98,10 @@ fun ChromaticTunerScreen(
                 stringResource(R.string.chromatic_auto),
                 stringResource(R.string.chromatic_manual),
             ),
-            selecionada = 0,
-            onSelect = { },
+            selecionada = if (state.autoDetect) 0 else 1,
+            onSelect = { indice ->
+                viewModel.setAutoDetect(indice == 0)
+            },
         )
 
         Spacer(Modifier.height(12.dp))
@@ -414,7 +417,10 @@ private fun SeletorDeCorda(
     val (letra, oitava) = notaEmPartes(midi)
     StudioCard(
         modifier = modifier
-            .clickable(onClick = onClick)
+            .clickable(
+                role = Role.Button,
+                onClick = onClick,
+            )
             .border(
                 width = 1.dp,
                 color = if (ativo) {

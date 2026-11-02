@@ -1,6 +1,7 @@
 package com.afinu.app.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -24,8 +25,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.afinu.app.R
 import com.afinu.app.ui.theme.DataMonoMedium
 import com.afinu.app.ui.theme.LabelCaps
 import com.afinu.app.ui.theme.StudioCyan
@@ -51,6 +55,7 @@ fun TuneMasterHeader(
     /** A4 de referência em uso, em Hertz. */
     a4Hz: Float,
     modifier: Modifier = Modifier,
+    onOpenSettings: () -> Unit = {},
 ) {
     Row(
         modifier = modifier
@@ -141,14 +146,18 @@ fun TuneMasterHeader(
 
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.primary),
+                .background(MaterialTheme.colorScheme.primary)
+                .clickable(
+                    role = Role.Button,
+                    onClick = onOpenSettings,
+                ),
             contentAlignment = Alignment.Center,
         ) {
             Icon(
                 imageVector = Icons.Filled.Person,
-                contentDescription = "Perfil",
+                contentDescription = stringResource(R.string.settings),
                 tint = MaterialTheme.colorScheme.onPrimary,
                 modifier = Modifier.size(18.dp),
             )

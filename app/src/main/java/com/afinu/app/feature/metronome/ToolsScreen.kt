@@ -39,6 +39,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -242,8 +243,11 @@ private fun SecaoMetronomo(
                 .weight(2f)
                 .clip(RoundedCornerShape(10.dp))
                 .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                .clickable(onClick = onTap)
-                .padding(vertical = 9.dp),
+                .clickable(
+                    role = Role.Button,
+                    onClick = onTap,
+                )
+                .padding(vertical = 12.dp),
             contentAlignment = Alignment.Center,
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -319,7 +323,10 @@ private fun SecaoMetronomo(
             .height(56.dp)
             .clip(RoundedCornerShape(16.dp))
             .background(MaterialTheme.colorScheme.primary)
-            .clickable(onClick = onToggle),
+            .clickable(
+                role = Role.Button,
+                onClick = onToggle,
+            ),
         contentAlignment = Alignment.Center,
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -485,17 +492,23 @@ private fun SecaoTons(
                                     MaterialTheme.colorScheme.surfaceContainerLow
                                 },
                             )
-                            .clickable { onWaveform(forma) }
-                            .padding(horizontal = 12.dp, vertical = 10.dp),
+                            .clickable(
+                                role = Role.Button,
+                                onClick = { onWaveform(forma) },
+                            )
+                            .padding(horizontal = 12.dp, vertical = 12.dp),
                     )
                 }
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(38.dp)
+                        .height(48.dp)
                         .clip(RoundedCornerShape(10.dp))
                         .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-                        .clickable { onTocarNota(69) },
+                        .clickable(
+                            role = Role.Button,
+                            onClick = { onTocarNota(69) },
+                        ),
                     contentAlignment = Alignment.Center,
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -531,8 +544,11 @@ private fun SecaoTons(
                             .weight(1f)
                             .clip(RoundedCornerShape(10.dp))
                             .background(MaterialTheme.colorScheme.surfaceContainerLow)
-                            .clickable { onTocarNota(midi) }
-                            .padding(vertical = 12.dp),
+                            .clickable(
+                                role = Role.Button,
+                                onClick = { onTocarNota(midi) },
+                            )
+                            .padding(vertical = 14.dp),
                     )
                 }
             }
@@ -551,8 +567,11 @@ private fun BotaoDePasso(
         modifier = modifier
             .clip(RoundedCornerShape(10.dp))
             .background(MaterialTheme.colorScheme.surfaceContainerHigh)
-            .clickable(onClick = onClick)
-            .padding(vertical = 9.dp),
+            .clickable(
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .padding(vertical = 12.dp),
         contentAlignment = Alignment.Center,
     ) {
         Text(
@@ -590,8 +609,11 @@ private fun OpcaoRedonda(
                     MaterialTheme.colorScheme.surfaceContainerHigh
                 },
             )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 14.dp, vertical = 9.dp),
+            .clickable(
+                role = Role.Button,
+                onClick = onClick,
+            )
+            .padding(horizontal = 14.dp, vertical = 12.dp),
     )
 }
 

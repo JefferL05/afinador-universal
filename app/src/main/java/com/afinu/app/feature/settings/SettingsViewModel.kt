@@ -2,6 +2,7 @@ package com.afinu.app.feature.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.afinu.app.core.audio.ConfirmTonePlayer
 import com.afinu.app.core.model.Instrument
 import com.afinu.app.core.model.TuningPreset
 import com.afinu.app.core.util.Capo
@@ -13,6 +14,8 @@ import com.afinu.app.data.repository.FavoriteTuning
 import com.afinu.app.data.repository.FavoritesCodec
 import com.afinu.app.data.repository.FavoritesRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -63,10 +66,33 @@ data class SettingsUiState(
 class SettingsViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val favoritesRepository: FavoritesRepository,
+    private val confirmTonePlayer: ConfirmTonePlayer,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    private var previewJob: Job? = null
+
+    /**
+     * Toca as notas da afinação em sequência como prévia de áudio.
+     */
+    fun tocarPrevia(tuning: TuningPreset) {
+        previewJob?.cancel()
+        previewJob = viewModelScope.launch {
+            for (midi in tuning.midiNotes) {
+                val hz = MusicTheory.frequencyOf(midi, _uiState.value.effectiveA4Hz)
+                if (hz.isFinite() && hz > 0f) {
+                    confirmTonePlayer.play(
+                        frequencyHz = hz,
+                        durationMs = DURACAO_PREVIA_MS,
+                        volume = _uiState.value.confirmToneVolume,
+                    )
+                }
+                delay(INTERVALO_PREVIA_MS)
+            }
+        }
+    }
 
     init {
         viewModelScope.launch {
@@ -209,7 +235,18 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(importOutcome = ImportOutcome.Idle) }
     }
 
+    override fun onCleared() {
+        previewJob?.cancel()
+        confirmTonePlayer.release()
+        super.onCleared()
+    }
+
     private fun launch(block: suspend () -> Unit) {
         viewModelScope.launch { block() }
+    }
+
+    private companion object {
+        const val DURACAO_PREVIA_MS = 350
+        const val INTERVALO_PREVIA_MS = 280L
     }
 }
